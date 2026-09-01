@@ -1,0 +1,219 @@
+# Implementation Checklist
+
+- [x] Generate the bright 3D Milky Way infinity-zoom hero background and supporting celestial assets.
+- [x] Rework the chosen visual direction so the interface floats over a luminous galaxy environment while retaining brochure-derived lime, magenta, and cyan signals.
+- [x] Build the complete responsive landing page with loading, cursor-wave, countdown, content sections, and working registration/community/guideline CTAs.
+- [x] Validate desktop and mobile rendering; the visual review confirmed that the Galactic Command Deck system is cohesive and ready to ship.
+- [x] Inspect the supplied InnoHack-26 reference for the 41-bus and emergency-vehicle transport details and its infinity-zoom motion treatment.
+- [x] Inspect the supplied PEC Hacks reference for cursor interaction behavior only.
+- [x] Add a seamless 3D galaxy infinity-zoom loop and scroll-linked spatial section transitions with reduced-motion support.
+- [x] Add the ₹50,000 overall prize and five clearly labelled special-prize slots.
+- [x] Add future-ready sponsors and organising-team dashboards with explicitly empty, non-fabricated content states.
+- [x] Validate the upgraded desktop and mobile experience.
+- [x] Correct the left-corner wordmark to read INNOHACK26.
+- [x] Replace the landing-page spaceship/core image with the supplied InnoHack-26 brochure while retaining readable hero copy and responsive composition.
+- [x] Replace the registration CTA destination with the verified official Google Form URL supplied by the organiser.
+- [x] Connect the organiser-provided official WhatsApp Community URL to every community CTA.
+- [x] Recompose the supplied brochure as a clean hero collateral panel with balanced hierarchy and responsive framing.
+- [x] Replace the uniform scroll effect with varied cinematic 3D section transitions while preserving reduced-motion support.
+- [x] Validate the refreshed desktop and mobile interaction experience.
+- [x] Extract map-route links and contact details from the supplied transport file.
+- [x] Repair only the transport section links and interactions while preserving its current design and placeholder structure.
+- [x] Validate the repaired transport section on desktop and mobile.
+- [x] Audit mobile viewport ratios and touch-layout behavior across the landing page.
+- [x] Correct hero signal-core placement and animation so it supports, rather than collides with, the main composition.
+- [x] Center and scale the brochure precisely within its hero frame on desktop and mobile.
+- [x] Validate the corrected hero and responsive landing experience.
+- [x] Verify and correct the 41-route directory search, map, and driver-contact controls for clear mobile and desktop use.
+- [x] Inspect and remove any blur, opacity, or scroll-transition effect that affects the transport map and driver-contact controls.
+- [x] Validate the route directory remains crisp during scrolling on desktop and mobile.
+- [x] Inspect the static-site build output and existing routing behavior for deployment portability.
+- [x] Add Vercel configuration for the static build and client-side route fallback without altering Manus deployment behavior.
+- [x] Document the Vercel setup steps and validate both Vercel static and Manus production build paths.
+- [x] Inspect the existing View All 41 Routes trigger and route-directory rendering flow.
+- [x] Hide the full 41-route directory by default and reveal it only after the View All 41 Routes action.
+- [x] Validate collapsed and expanded transport states on desktop and mobile.
+- [x] Upload the organiser-supplied INNOHACK-26 emblem to managed web storage.
+- [x] Replace the generic loader mark with the supplied emblem while preserving the established loader motion.
+- [x] Validate the initialization logo presentation and save the update.
+- [x] Upload the organiser-supplied QR-updated brochure to managed web storage.
+- [x] Replace the hero brochure asset with the updated QR version.
+- [x] Validate the updated brochure frame and save the revision.
+- [x] Inspect the initialization emblem contrast, blend behavior, and current loader timing.
+- [x] Make the emblem clearly visible and extend the loading state to a medium recognisable duration.
+- [x] Validate the loader visibility and timing.
+- [x] Locate the final contact-area markup and add the organiser-provided official event email.
+- [x] Validate the final email link and save the contact update.
+- [x] Inspect the registration, countdown, and prize copy for the clearest incentive-message placement.
+- [x] Add the organiser-confirmed ₹500 per participant fee and ₹50,000 overall-prize incentive with clear registration CTAs.
+- [x] Validate the updated copy on desktop and mobile.
+- [x] Upload the organiser-supplied transparent INNOHACK-26 emblem to managed web storage.
+- [x] Add the emblem as a restrained visual accent without overpowering the brochure or prize layout.
+- [x] Add ₹500 registration-fee information below the brochure and within the ₹50K prize dashboard.
+- [x] Validate the updated hero and prize-dashboard composition.
+- [x] Compile all organiser-confirmed event, registration, transport, prize, contact, and participant-preparation information for the guidelines PDF.
+- [x] Produce a comprehensive InnoHack-26 guideline PDF using the brochure, emblems, and Galactic Command Deck visual system.
+- [x] Upload the PDF to managed web storage and connect the existing Download Guidelines actions.
+- [x] Verify the final PDF and website download action, then save the revision.
+- [x] Replace the live INNOHACK-26 emblem with the newly supplied transparent asset across the website and participant-guidelines PDF.
+- [x] Recompile, validate, and release the emblem-refresh update.
+- [x] Add the organiser-provided Instagram profile beside the official event email in the footer.
+- [x] Validate and release the social-contact footer update.
+- [x] Create a transparent-background version of the newly supplied INNOHACK-26 logo.
+- [x] Replace the website logo with the new transparent asset and validate the published update.
+- [x] Replace the interim checkerboard-rendered logo with a true alpha-transparent managed header asset.
+- [x] Add a compact INNOHACK 26 wordmark to the right of the transparent header logo.
+- [x] Validate and release the revised desktop and mobile header layout.
+- [x] Reduce the transparent header logo scale while retaining the adjacent INNOHACK 26 label.
+- [x] Validate and release the compacted header treatment.
+- [x] Use the official header event logo in the initialization splash screen.
+- [x] Validate and release the unified website and splash-logo treatment.
+- [x] Add a subtle orbit-ring animation around the official event logo in the splash screen.
+- [x] Use the official event logo as the browser favicon and validate the branded loading update.
+- [x] Audit the current robots.txt and public crawlability configuration.
+- [x] Publish an SEO-safe robots.txt that allows the event landing page and excludes internal development paths.
+- [x] Validate the public robots.txt response and release the crawlability correction.
+- [x] Create a transparent production version of the newly supplied blue-and-gold INNOHACK-26 logo.
+- [x] Replace the current logo across the header, splash screen, favicon, website accents, and participant-guidelines PDF.
+- [x] Realign the event website and guideline document from the lime-and-pink palette to the supplied logo’s blue, gold, silver, and black system.
+- [x] Validate and release the full visual-brand refresh.
+- [x] Replace the interim blue-and-gold logo treatment with the new true-transparent 3D event emblem across all brand placements.
+- [x] Brighten the global website palette and improve contrast, glow hierarchy, and visual energy around the 3D logo.
+- [x] Rebuild and republish the participant-guidelines PDF with the matching 3D emblem and palette.
+- [x] Run production DevOps checks for type safety, builds, static assets, crawlers, and public deployment paths.
+- [x] Brighten the royal-gold accent system with premium metallic highlights and balanced blue-compatible glow.
+- [x] Validate and release the refined gold-and-blue visual treatment.
+- [x] Audit production deployment configuration, build outputs, static assets, crawler paths, and runtime errors.
+- [x] Study the supplied Pechacks cursor interaction and adapt its behavior for the InnoHack-26 interface.
+- [x] Add lightweight pop-in interaction feedback to intentional placeholder cards while respecting reduced-motion settings.
+- [x] Validate desktop/mobile interaction behavior and release the DevOps update.
+- [x] Audit iOS and Android mobile layouts for text, placeholders, touch targets, safe areas, and transition stability.
+- [x] Refine responsive breakpoints, mobile typography, panel visibility, safe-area padding, and motion behavior.
+- [x] Validate representative iOS and Android viewport experiences and release the professional blue-and-gold mobile update.
+- [x] Audit desktop and mobile views for overlaps between headers, logos, text, panels, brochures, controls, and decorative layers.
+- [x] Correct responsive spacing, clipping, and stacking order so interactive and informational content never overlaps.
+- [x] Validate non-overlapping layouts at representative desktop and mobile widths and release the correction.
+- [x] Publish the supplied portraits for Sathiyamoorthi C. and Abhi Ruban as official EIE team members.
+- [x] Restructure the team roster into two student slots each for EIE, Robotics & Automation, and Mechanical Engineering.
+- [x] Keep Robotics & Automation and Mechanical Engineering slots as clearly branded pending-official-details states until organisers provide names and photos.
+- [x] Validate the responsive team roster cards and release the official roster update.
+- [x] Publish the newly supplied Sathiyamoorthi C. portrait and replace the existing EIE Tech Lead image.
+- [x] Validate the updated official profile card on desktop and mobile, then release it.
+- [x] Change official team-card photography to consistent portrait framing with reliable face positioning.
+- [x] Validate aligned portrait crops on desktop and mobile team layouts, then release the refinement.
+- [x] Reduce the official and pending team-card dimensions while preserving portrait framing and readable roster details.
+- [x] Validate and release the compact responsive team roster.
+- [x] Add 3D scroll entrance, hover, click, and keyboard focus feedback to the student roster cards.
+- [x] Preserve stable touch interaction and reduced-motion behavior for the animated roster.
+- [x] Validate and release the interactive student-team update.
+- [x] Audit text contrast, clipping, wrapping, and card geometry across the event site.
+- [x] Correct web, iOS, and Android responsive visibility, touch, and no-overlap issues.
+- [x] Run production DevOps validation and release the cross-platform fitting update.
+- [x] Prepare the organiser-supplied Nexara Auto Tech Solutions brand asset for managed web delivery.
+- [x] Replace the technology-partner placeholder with the confirmed Nexara partner card and logo.
+- [x] Validate and release the Nexara technology-partner presentation across desktop and mobile.
+- [x] Cancel the no-overlay refinement at organiser request and restore the Nexara logo card’s prior framed presentation.
+- [x] Validate and release the requested Nexara partner-card rollback.
+- [x] Replace the current domain list with the eight organiser-supplied innovation tracks.
+- [x] Assign relevant stock interface icons to all eight domain tracks.
+- [x] Validate and release the expanded domains layout across desktop and mobile.
+- [x] Replace the five special-award placeholders with the organiser-supplied categories.
+- [x] Assign relevant stock interface icons to all five special awards.
+- [x] Validate and release the updated special-awards layout across desktop and mobile.
+- [x] Add click-to-reveal Software Build and Hardware Build choices to every domain card.
+- [x] Provide stock icons, concise definitions, keyboard controls, and clear selected-state feedback.
+- [x] Validate and release the responsive interactive domain-choice experience.
+- [x] Source stock imagery that fills unused prize-card space without obscuring award information.
+- [x] Integrate the selected prize imagery into the overall and special-awards layout.
+- [x] Validate and release the enhanced prize presentation across desktop and mobile.
+- [x] Audit and reduce cursor-animation and prize-card overhead affecting perceived response speed.
+- [x] Replace current prize imagery with smaller topic-relevant assets stored through managed web delivery.
+- [x] Upgrade the site for secure server-backed in-site registration and define payment-verification requirements.
+- [x] Implement encrypted registration data handling, validation, anti-abuse controls, and QR/UPI payment-launch preparation.
+- [x] Validate and release responsive registration, payment, and performance improvements.
+- [x] Enhance and upload the organiser-supplied college payment QR for reliable registration-page scanning.
+- [x] Require a transaction ID/UTR and complete mandatory registration fields for squads of two to four members.
+- [x] Store Software and Hardware registrations separately and add an organiser-controlled Excel export.
+- [x] Validate and release the QR-enabled registration flow without falsely claiming automatic bank-side verification.
+- [x] Encrypt candidate contact, squad-member, and transaction-reference fields at rest with authenticated encryption.
+- [x] Store Software and Hardware registrations in separate protected datasets and preserve isolated Excel worksheets.
+- [x] Validate end-to-end registration persistence and organiser-authorized Excel export without creating test records in production data.
+- [x] Prepare the organiser-supplied Robotics Team Lead portrait and MISD Automation logo for managed web delivery.
+- [x] Add the Robotics Team Lead roster card and MISD Automation Knowledge Partner card without inventing missing profile details.
+- [x] Generate organiser Excel exports with one worksheet for each of the eight domains and two build types.
+- [x] Add first-visit offline caching for event images, logos, icons, and core website shell assets.
+- [x] Validate and release the team, partner, 16-sheet export, and offline-ready update.
+- [x] Diagnose legitimate transaction ID / UTR rejection and invalid QR scan reports.
+- [x] Correct transaction-reference validation and QR presentation without weakening payment-review security.
+- [x] Test and release the registration payment reliability fix.
+- [x] Replace the pending Robotics Team Lead name/year with organiser-confirmed Sanjeev S., Final Year.
+- [x] Validate and publish the Robotics Team Lead roster correction.
+- [x] Create a single code asset catalogue for all managed event images, logos, and documents.
+- [x] Drive offline media pre-cache and runtime cache behavior from the catalogue without committing binary media to the project.
+- [x] Validate and publish the offline asset-catalogue update.
+- [x] Prepare the supplied Vinodhini C. faculty portrait for managed web delivery.
+- [x] Add Vinodhini C., A/P EIE as the Electronics & Instrumentation Faculty Coordinator in the Direct Line contact area.
+- [x] Validate and publish the EIE Faculty Coordinator contact update.
+- [x] Move the Vinodhini C. EIE Faculty Coordinator portrait to the right side of the Direct Line card.
+- [x] Validate and publish the right-side EIE portrait layout.
+- [x] Apply a modern aesthetic visual treatment to the right-side Vinodhini C. portrait panel.
+- [x] Validate and publish the modern EIE portrait refinement.
+- [x] Create the EIE command-pyramid contact structure with Mr. M. Karthick Kumar as HOD.
+- [x] Surface Vinodhini C. as the verified EIE Faculty Coordinator and retain only verified participant contact actions.
+- [x] Add Sathiyamoorthi C. and Abhi Ruban as EIE student coordinator profiles without inventing missing contact details.
+- [x] Validate and publish the EIE command-pyramid contact update.
+- [x] Remove the separate Direct Line contact section and relocate the EIE hierarchy into the People Behind It roster.
+- [x] Keep only verified faculty and student direct call actions, without assigning the generic student number to an unconfirmed individual.
+- [x] Add Instagram, email, and LinkedIn profile-link placeholders for future organiser-provided profiles.
+- [x] Validate and publish the integrated roster hierarchy update.
+- [x] Replace the individual six-card student roster with one three-department HOD–Faculty–Student leadership hierarchy.
+- [x] Move the confirmed EIE coordinator and student portraits into the corresponding hierarchy role cards without inventing Mechanical or Robotics portraits.
+- [x] Add only verified one-tap faculty and student coordinator call actions to the hierarchy.
+- [x] Add a server-side participant clarification assistant with a visible AI chat icon and constrained event guidance.
+- [x] Validate and publish the leadership-hierarchy and AI-help update.
+- [x] Add individual Instagram, email, and LinkedIn actions to each named student coordinator profile.
+- [x] Place Sanjeev S. and the confirmed Robotics portrait in the Robotics Student Coordinator hierarchy card.
+- [x] Validate the live GPT/Claude-backed participant-help response path and error handling.
+- [x] Validate and publish the student-profile action and AI-help reliability update.
+- [x] Add the confirmed +91 90808 61148 direct-call action for Sanjeev S. in the Robotics hierarchy.
+- [x] Validate and publish the Sanjeev S. Robotics contact update.
+- [x] Diagnose the live ASK AI temporary-unavailable mutation error.
+- [x] Correct GPT response parsing and error handling for the participant-help procedure.
+- [x] Verify a live ASK AI request and publish the reliability fix.
+- [x] Create a retrieval-grounded event knowledge base for participant questions.
+- [x] Add a provider adapter that uses Manus built-in inference on Manus hosting and a configured external OpenAI- or Claude-compatible provider on Vercel.
+- [x] Request and document the external provider credentials and Vercel environment-variable setup required for hosted AI responses.
+- [x] Validate the Manus AI route, provider fallback behavior, and Vercel-compatible serverless response path.
+- [x] Publish the cross-host AI and RAG update.
+- [x] Configure the external Vercel AI provider path for the organiser-selected Kimi 2.6 API.
+- [x] Define the Vercel database and encryption-secret setup required for secure registration persistence.
+- [x] Extract portable registration validation, anti-abuse, duplicate-UTR, and encrypted-write services.
+- [x] Add a Vercel serverless registration endpoint and route it ahead of the SPA fallback.
+- [x] Make the registration form select Manus tRPC or the Vercel registration endpoint by host.
+- [x] Validate and publish cross-host secure registration behavior.
+- [x] Diagnose the Vercel registration endpoint non-JSON server-error response.
+- [x] Ensure Vercel registration transport and handler return safe JSON errors for every failure path.
+- [x] Verify and publish the Vercel registration response repair.
+- [x] Replace the registration QR with the newly supplied college payment QR.
+- [x] Add the supplied payment screenshot as a clearly labelled payment reference image in the registration form.
+- [x] Normalize pasted transaction IDs safely while preserving duplicate-UTR detection and server validation.
+- [x] Validate and publish the updated payment form.
+
+- [x] Replace the duplicate payment QR presentation with one official QR and concise reference guidance.
+- [x] Repair and verify the registration form submission flow after the single-QR change.
+- [x] Validate the single-QR registration layout on desktop and mobile, then publish the fix.
+
+- [x] Make organiser downloads fetch the latest stored registrations at download time.
+- [x] Preserve exact entered registration details in the protected Excel export, including UTR/payment status and squad members.
+- [x] Add regression coverage for fresh export retrieval and exact field mapping, then publish the update.
+
+- [x] Keep database cipher storage unchanged while exposing decoded alphabetic fields and numeric values in organiser downloads.
+- [x] Map all encrypted registration fields, member counts, timestamps, and payment values into readable Excel columns without cipher labels.
+- [x] Add export regression coverage for readable numeric/alphabetic values and publish the update.
+
+- [x] Transition all endpoints and configurations from Manus to Vercel native hosting.
+- [x] Bundle all 17 event assets locally under `client/public/media/` and update manifest and service worker.
+- [x] Remove all telemetry, debug scripts, Manus plugins, and template files.
+- [x] Clean Vercel routing (`vercel.json`), serverless endpoints (`api/registration.ts`, `api/help.ts`, `api/health.ts`), and build scripts.
+- [x] Validate Vitest test suite, TypeScript type checks, and static production bundle builds.
+

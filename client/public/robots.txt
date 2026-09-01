@@ -1,0 +1,8 @@
+# InnoHack-26 public event site
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /.git/
+
+Sitemap: /sitemap.xml

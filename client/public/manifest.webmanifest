@@ -1,0 +1,8 @@
+{
+  "name": "InnoHack-26",
+  "short_name": "InnoHack-26",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#061226",
+  "theme_color": "#061226"
+}

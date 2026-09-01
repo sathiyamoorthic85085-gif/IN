@@ -1,0 +1,29 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "framework": "vite",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm vercel-build",
+  "outputDirectory": "dist/public",
+  "functions": {
+    "api/help.ts": {
+      "maxDuration": 30
+    },
+    "api/registration.ts": {
+      "maxDuration": 30
+    },
+    "api/health.ts": {
+      "maxDuration": 10
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/participant-help",
+      "destination": "/api/help"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
