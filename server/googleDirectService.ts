@@ -16,7 +16,7 @@ export function getGoogleServiceConfig(): GoogleServiceConfig | null {
   const spreadsheetId =
     process.env.GOOGLE_SHEETS_SPREADSHEET_ID ||
     process.env.GOOGLE_SHEET_ID ||
-    "1lRU5V6jQopSxwvSZEMoFJurwFZEuMH2pgbjIACHSXP0";
+    "1J3nZj977Gm2AvfMmg3hJDm6rAMdJFo-16lyxnTlaKZo";
 
   // 1. Try GOOGLE_SERVICE_ACCOUNT_JSON environment variable (full JSON string)
   if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {

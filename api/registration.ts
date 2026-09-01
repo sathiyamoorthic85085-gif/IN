@@ -129,7 +129,7 @@ function getGoogleServiceAccountConfig() {
   const spreadsheetId =
     process.env.GOOGLE_SHEETS_SPREADSHEET_ID ||
     process.env.GOOGLE_SHEET_ID ||
-    "1lRU5V6jQopSxwvSZEMoFJurwFZEuMH2pgbjIACHSXP0";
+    "1J3nZj977Gm2AvfMmg3hJDm6rAMdJFo-16lyxnTlaKZo";
 
   if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
     try {
@@ -208,6 +208,28 @@ async function syncToGoogleSheetsDirect(registration: any): Promise<{ status: st
   try {
     const accessToken = await getGoogleOAuth2Token(config);
 
+    const HEADERS = [
+      "Timestamp",
+      "Reference Code",
+      "Team Name",
+      "Team Lead Name",
+      "Email Address",
+      "Mobile Number",
+      "College / Institution",
+      "Squad Size",
+      "Member 1 Name",
+      "Member 2 Name",
+      "Member 3 Name",
+      "Member 4 Name",
+      "Member 5 Name",
+      "Member 6 Name",
+      "Innovation Domain",
+      "Build Type",
+      "Transaction ID / UTR",
+      "Payment Screenshot / Photo",
+      "Payment Status"
+    ];
+
     // Format row
     const row = [
       registration.submittedAt,
@@ -231,6 +253,20 @@ async function syncToGoogleSheetsDirect(registration: any): Promise<{ status: st
       registration.paymentStatus,
     ];
 
+    // Check existing sheets in the spreadsheet
+    let existingSheetTitles: string[] = [];
+    try {
+      const metaRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${config.spreadsheetId}?fields=sheets.properties.title`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (metaRes.ok) {
+        const metaJson = await metaRes.json();
+        existingSheetTitles = metaJson.sheets?.map((s: any) => s.properties?.title) || [];
+      }
+    } catch (metaErr) {
+      console.warn("[GoogleDirect] Meta fetch warning:", metaErr);
+    }
+
     const sheetsToAppend = [
       "Form Responses 1",
       registration.buildType === "hardware" ? "Hardware" : "Software",
@@ -238,7 +274,35 @@ async function syncToGoogleSheetsDirect(registration: any): Promise<{ status: st
 
     for (const sheet of sheetsToAppend) {
       try {
-        const range = encodeURIComponent(`'${sheet}'!A:S`);
+        // If sheet doesn't exist, create it and add headers
+        if (existingSheetTitles.length > 0 && !existingSheetTitles.includes(sheet)) {
+          try {
+            await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${config.spreadsheetId}:batchUpdate`, {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                requests: [{ addSheet: { properties: { title: sheet } } }],
+              }),
+            });
+            await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${config.spreadsheetId}/values/${encodeURIComponent(sheet)}!A1:S1?valueInputOption=USER_ENTERED`, {
+              method: "PUT",
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ values: [HEADERS] }),
+            });
+            existingSheetTitles.push(sheet);
+          } catch (createErr) {
+            console.warn(`[GoogleDirect] Auto-create sheet "${sheet}" warning:`, createErr);
+          }
+        }
+
+        const targetName = existingSheetTitles.includes(sheet) ? sheet : (existingSheetTitles[0] || "Sheet1");
+        const range = encodeURIComponent(`'${targetName}'!A:S`);
         const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${config.spreadsheetId}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
         await fetch(appendUrl, {
           method: "POST",
