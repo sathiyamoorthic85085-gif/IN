@@ -1,4 +1,5 @@
 import { z } from "zod";
+import crypto from "node:crypto";
 
 const registrationDomains = [
   "AgriTech & GreenTech",
@@ -120,6 +121,149 @@ function sendResponse(res: any, status: number, data: any) {
   }
 }
 
+// -------------------------------------------------------------
+// GOOGLE SERVICE ACCOUNT DIRECT API INTEGRATION
+// -------------------------------------------------------------
+
+function getGoogleServiceAccountConfig() {
+  const spreadsheetId =
+    process.env.GOOGLE_SHEETS_SPREADSHEET_ID ||
+    process.env.GOOGLE_SHEET_ID ||
+    "1lRU5V6jQopSxwvSZEMoFJurwFZEuMH2pgbjIACHSXP0";
+
+  if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+    try {
+      const parsed = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+      if (parsed.client_email && parsed.private_key) {
+        return {
+          clientEmail: parsed.client_email,
+          privateKey: parsed.private_key.replace(/\\n/g, "\n"),
+          privateKeyId: parsed.private_key_id,
+          spreadsheetId,
+        };
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || process.env.GOOGLE_CLIENT_EMAIL;
+  let privateKey = process.env.GOOGLE_PRIVATE_KEY;
+
+  if (clientEmail && privateKey) {
+    return {
+      clientEmail,
+      privateKey: privateKey.replace(/\\n/g, "\n"),
+      spreadsheetId,
+    };
+  }
+
+  return null;
+}
+
+async function getGoogleOAuth2Token(config: { clientEmail: string; privateKey: string; privateKeyId?: string }) {
+  const now = Math.floor(Date.now() / 1000);
+  const header: Record<string, string> = { alg: "RS256", typ: "JWT" };
+  if (config.privateKeyId) header.kid = config.privateKeyId;
+
+  const payload = {
+    iss: config.clientEmail,
+    scope: "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive",
+    aud: "https://oauth2.googleapis.com/token",
+    exp: now + 3600,
+    iat: now,
+  };
+
+  const encodedHeader = Buffer.from(JSON.stringify(header)).toString("base64url");
+  const encodedPayload = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const signingInput = `${encodedHeader}.${encodedPayload}`;
+
+  const signer = crypto.createSign("RSA-SHA256");
+  signer.update(signingInput);
+  const signature = signer.sign(config.privateKey, "base64url");
+  const jwt = `${signingInput}.${signature}`;
+
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion: jwt,
+    }).toString(),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Google token error: ${response.status} ${errorText}`);
+  }
+
+  const data = (await response.json()) as { access_token: string };
+  return data.access_token;
+}
+
+async function syncToGoogleSheetsDirect(registration: any): Promise<{ status: string; photoUrl?: string }> {
+  const config = getGoogleServiceAccountConfig();
+  if (!config) return { status: "not_configured" };
+
+  try {
+    const accessToken = await getGoogleOAuth2Token(config);
+
+    // Format row
+    const row = [
+      registration.submittedAt,
+      registration.referenceCode,
+      registration.teamName,
+      registration.leadName,
+      registration.email,
+      registration.phone,
+      registration.college,
+      registration.memberCount,
+      registration.memberOne,
+      registration.memberTwo || "",
+      registration.memberThree || "",
+      registration.memberFour || "",
+      registration.memberFive || "",
+      registration.memberSix || "",
+      registration.domain,
+      registration.buildType.toUpperCase(),
+      registration.transactionId,
+      registration.photoBase64 ? "Payment Screenshot Attached" : "No Screenshot",
+      registration.paymentStatus,
+    ];
+
+    const sheetsToAppend = [
+      "Form Responses 1",
+      registration.buildType === "hardware" ? "Hardware" : "Software",
+    ];
+
+    for (const sheet of sheetsToAppend) {
+      try {
+        const range = encodeURIComponent(`'${sheet}'!A:S`);
+        const appendUrl = `https://sheets.googleapis.com/v4/spreadsheets/${config.spreadsheetId}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+        await fetch(appendUrl, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ values: [row] }),
+        });
+      } catch (sheetErr) {
+        console.warn(`[GoogleDirect] Append to ${sheet} warning:`, sheetErr);
+      }
+    }
+
+    return { status: "synced" };
+  } catch (err) {
+    console.warn("[GoogleDirect] Direct sync failed:", err instanceof Error ? err.message : err);
+    return { status: "pending" };
+  }
+}
+
+// -------------------------------------------------------------
+// GOOGLE APPS SCRIPT WEBHOOK INTEGRATION
+// -------------------------------------------------------------
+
 async function forwardToGoogleSheetsWebhook(payload: any): Promise<{ status: string; photoUrl?: string }> {
   const webhookUrl = (
     process.env.GOOGLE_SHEETS_WEBHOOK_URL ||
@@ -218,12 +362,15 @@ export default async function handler(req: any, res: any) {
       photoType: input.photoType,
     };
 
-    // Sync to Google Sheets
-    let mirrorResult = { status: "not_configured", photoUrl: undefined as string | undefined };
-    try {
-      mirrorResult = await forwardToGoogleSheetsWebhook(registrationRecord);
-    } catch (syncErr) {
-      console.warn("[VercelRegistration] Google sheets forward skipped:", syncErr);
+    // 1. Try Direct Google Service Account
+    let mirrorResult = await syncToGoogleSheetsDirect(registrationRecord);
+
+    // 2. If Service Account is not configured or failed, try Webhook
+    if (mirrorResult.status !== "synced") {
+      const webhookRes = await forwardToGoogleSheetsWebhook(registrationRecord);
+      if (webhookRes.status === "synced") {
+        mirrorResult = webhookRes;
+      }
     }
 
     return sendResponse(res, 201, {
