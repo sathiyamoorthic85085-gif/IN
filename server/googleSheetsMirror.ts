@@ -1,3 +1,8 @@
+import {
+  appendRegistrationToGoogleSheetsDirect,
+  isGoogleServiceAccountConfigured,
+} from "./googleDirectService";
+
 export type GoogleSheetsMirrorStatus = "not_configured" | "synced" | "pending";
 
 export type GoogleSheetsRegistration = {
@@ -25,7 +30,7 @@ export type GoogleSheetsRegistration = {
   photoUrl?: string;
 };
 
-function mirrorConfig() {
+function webhookConfig() {
   const url = (
     process.env.GOOGLE_SHEETS_WEBHOOK_URL ||
     process.env.GOOGLE_SHEETS_SCRIPT_URL ||
@@ -41,13 +46,26 @@ function mirrorConfig() {
 }
 
 export function isGoogleSheetsBackendConfigured(): boolean {
-  return Boolean(mirrorConfig());
+  return isGoogleServiceAccountConfigured() || Boolean(webhookConfig());
 }
 
 export async function mirrorRegistrationToGoogleSheets(
   registration: GoogleSheetsRegistration
 ): Promise<{ status: GoogleSheetsMirrorStatus; photoUrl?: string }> {
-  const config = mirrorConfig();
+  // 1. Direct Google Service Account (Highest fidelity, official Google Sheets + Drive API)
+  if (isGoogleServiceAccountConfigured()) {
+    try {
+      const directResult = await appendRegistrationToGoogleSheetsDirect(registration);
+      if (directResult.status === "synced") {
+        return directResult;
+      }
+    } catch (err) {
+      console.warn("[GoogleSheets] Direct service account sync error, trying webhook fallback if configured:", err);
+    }
+  }
+
+  // 2. Google Apps Script Webhook
+  const config = webhookConfig();
   if (!config) return { status: "not_configured" };
 
   const controller = new AbortController();
