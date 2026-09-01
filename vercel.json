@@ -2,22 +2,23 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "framework": "vite",
-  "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm vercel-build",
   "outputDirectory": "dist/public",
-  "functions": {
-    "api/*.ts": {
-      "maxDuration": 30
-    }
-  },
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/participant-help",
-      "destination": "/api/help"
+      "src": "/api/participant-help",
+      "dest": "/api/help"
     },
     {
-      "source": "/((?!api/|media/|assets/|favicon.ico|manifest.webmanifest|sw.js|robots.txt|sitemap.xml).*)",
-      "destination": "/index.html"
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
