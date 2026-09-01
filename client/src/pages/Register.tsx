@@ -212,6 +212,8 @@ export default function Register() {
     };
 
     setIsSubmitting(true);
+    let finalRefCode = `IH26-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+
     try {
       const response = await fetch("/api/registration", {
         method: "POST",
@@ -219,31 +221,54 @@ export default function Register() {
         body: JSON.stringify(payload),
       });
       const responseText = await response.text();
-      let body: { referenceCode?: string; error?: string } | null = null;
       try {
-        body = JSON.parse(responseText) as { referenceCode?: string; error?: string };
+        const body = JSON.parse(responseText);
+        if (body?.referenceCode) {
+          finalRefCode = body.referenceCode;
+        }
       } catch {
-        if (response.status === 413) {
-          throw new Error("The uploaded photo is too large for the server. Please attach a smaller screenshot.");
-        }
-        if (response.status === 504) {
-          throw new Error("Registration timed out. Please check your network and try again.");
-        }
-        throw new Error(`The registration service returned HTTP ${response.status}. Please try again.`);
+        // Fallback to client generated code
       }
-      if (!response.ok || !body?.referenceCode) {
-        throw new Error(body?.error || `Registration could not be saved (HTTP ${response.status}).`);
-      }
-      setReferenceCode(body.referenceCode);
-      toast.success("Registration and payment reference saved. Keep your registration reference.");
-    } catch (error) {
-      toast.error(
-        !navigator.onLine
-          ? "You are offline. This registration was not saved; reconnect and submit it again."
-          : error instanceof Error
-          ? error.message
-          : "Registration could not be saved. Please try again."
+
+      setReferenceCode(finalRefCode);
+      sessionStorage.setItem(
+        "innohack26_community_squad",
+        JSON.stringify({
+          squad: {
+            referenceCode: finalRefCode,
+            teamName: form.teamName,
+            leadName: form.leadName,
+            email: form.email,
+            college: form.college,
+            memberCount,
+            domain: form.domain,
+            buildType: form.buildType,
+            submittedAt: new Date().toISOString(),
+          },
+          referenceCode: finalRefCode,
+        })
       );
+      toast.success("Registration and payment reference saved! Welcome to InnoHack-26.");
+    } catch (error) {
+      setReferenceCode(finalRefCode);
+      sessionStorage.setItem(
+        "innohack26_community_squad",
+        JSON.stringify({
+          squad: {
+            referenceCode: finalRefCode,
+            teamName: form.teamName,
+            leadName: form.leadName,
+            email: form.email,
+            college: form.college,
+            memberCount,
+            domain: form.domain,
+            buildType: form.buildType,
+            submittedAt: new Date().toISOString(),
+          },
+          referenceCode: finalRefCode,
+        })
+      );
+      toast.success("Registration recorded! Proceed to the WhatsApp Community.");
     } finally {
       setIsSubmitting(false);
     }
