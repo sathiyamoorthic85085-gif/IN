@@ -149,11 +149,13 @@ function getGoogleServiceAccountConfig() {
 
   const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || process.env.GOOGLE_CLIENT_EMAIL;
   let privateKey = process.env.GOOGLE_PRIVATE_KEY;
+  const privateKeyId = process.env.GOOGLE_PRIVATE_KEY_ID;
 
   if (clientEmail && privateKey) {
     return {
       clientEmail,
-      privateKey: privateKey.replace(/\\n/g, "\n"),
+      privateKey: privateKey.replace(/^"|"$/g, "").replace(/\\n/g, "\n"),
+      privateKeyId,
       spreadsheetId,
     };
   }
