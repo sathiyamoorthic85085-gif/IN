@@ -268,9 +268,27 @@ export default function Register() {
               </span>
             </div>
           </div>
-          <Button className="cta cta-primary" onClick={() => setLocation("/")}>
-            RETURN TO EVENT SITE
-          </Button>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", width: "100%", marginTop: "12px" }}>
+            <Button
+              className="cta"
+              style={{
+                background: "#25d366",
+                color: "#05160b",
+                fontWeight: 800,
+                boxShadow: "0 6px 20px rgba(37,211,102,0.35)",
+              }}
+              onClick={() =>
+                setLocation(
+                  `/community?email=${encodeURIComponent(form.email)}&ref=${encodeURIComponent(referenceCode)}`
+                )
+              }
+            >
+              JOIN OFFICIAL WHATSAPP COMMUNITY &rarr;
+            </Button>
+            <Button className="cta cta-outline" onClick={() => setLocation("/")}>
+              RETURN TO EVENT SITE
+            </Button>
+          </div>
         </section>
       </main>
     );

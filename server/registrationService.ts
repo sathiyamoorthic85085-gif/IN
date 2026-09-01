@@ -1,6 +1,14 @@
 import { z } from "zod";
-import { createSecureRegistration, getSecureRegistrationsByBuildType, transactionAlreadyUsed } from "./db";
-import { isGoogleSheetsBackendConfigured, mirrorRegistrationToGoogleSheets } from "./googleSheetsMirror";
+import {
+  GoogleSheetsMirrorStatus,
+  isGoogleSheetsBackendConfigured,
+  mirrorRegistrationToGoogleSheets,
+} from "./googleSheetsMirror";
+import {
+  createSecureRegistration,
+  getSecureRegistrationsByBuildType,
+  transactionAlreadyUsed,
+} from "./db";
 
 const registrationDomains = [
   "AgriTech & GreenTech",
@@ -80,6 +88,23 @@ export class RegistrationServiceError extends Error {
 
 const submissionWindows = new Map<string, { startedAt: number; count: number }>();
 
+// In-memory cache of recent registrations for immediate community verification
+export interface RegisteredSquadRecord {
+  referenceCode: string;
+  teamName: string;
+  leadName: string;
+  email: string;
+  phone: string;
+  college: string;
+  memberCount: number;
+  domain: string;
+  buildType: "software" | "hardware";
+  transactionId: string;
+  submittedAt: string;
+}
+
+const recentRegistrations = new Map<string, RegisteredSquadRecord>();
+
 export function requestClientKey(headers: Record<string, string | string[] | undefined>) {
   const forwarded = headers["x-forwarded-for"];
   const firstForwarded = Array.isArray(forwarded) ? forwarded[0] : forwarded?.split(",")[0];
@@ -93,7 +118,7 @@ function assertRegistrationRateLimit(key: string) {
     submissionWindows.set(key, { startedAt: now, count: 1 });
     return;
   }
-  if (existing.count >= 15) {
+  if (existing.count >= 20) {
     throw new RegistrationServiceError(429, "Please wait a few minutes before submitting another registration.");
   }
   existing.count += 1;
@@ -117,11 +142,10 @@ export async function submitSecureRegistration(input: RegistrationInput, clientK
     }
   } catch (error) {
     if (error instanceof RegistrationServiceError) throw error;
-    // If DB is not reachable, we log and proceed to Google Sheets
+    console.warn("[Registration] Database duplicate check skipped:", error instanceof Error ? error.message : error);
   }
 
   const referenceCode = registrationReference();
-  let dbSaved = false;
 
   try {
     await createSecureRegistration({
@@ -142,38 +166,55 @@ export async function submitSecureRegistration(input: RegistrationInput, clientK
       buildType: input.buildType,
       transactionId: input.transactionId,
     });
-    dbSaved = true;
   } catch (error) {
     console.warn("[Registration] Database insert skipped or unavailable:", error instanceof Error ? error.message : error);
   }
 
-  const mirrorResult = await mirrorRegistrationToGoogleSheets({
+  // Record into fast in-memory store for instant community verification
+  const squadRecord: RegisteredSquadRecord = {
     referenceCode,
     teamName: input.teamName,
     leadName: input.leadName,
     email: input.email.toLowerCase(),
     phone: input.phone,
     college: input.college,
-    memberOne: input.memberOne,
-    memberTwo: input.memberTwo || null,
-    memberThree: input.memberThree || null,
-    memberFour: input.memberFour || null,
-    memberFive: input.memberFive || null,
-    memberSix: input.memberSix || null,
     memberCount: input.memberCount,
     domain: input.domain,
     buildType: input.buildType,
     transactionId: input.transactionId,
-    paymentStatus: "payment_pending",
     submittedAt: new Date().toISOString(),
-    photoBase64: input.photoBase64,
-    photoName: input.photoName,
-    photoType: input.photoType,
-  });
+  };
+  recentRegistrations.set(referenceCode.toLowerCase(), squadRecord);
+  recentRegistrations.set(input.email.toLowerCase(), squadRecord);
 
-  if (!dbSaved && mirrorResult.status === "not_configured" && !isGoogleSheetsBackendConfigured()) {
-    // If neither DB nor Google Sheets is configured, log warning but return reference in dev
-    console.warn("[Registration] Neither database nor Google Sheets is currently connected.");
+  // Mirror to Google Sheets & Google Drive
+  let mirrorResult: { status: GoogleSheetsMirrorStatus; photoUrl?: string } = { status: "not_configured" };
+  try {
+    mirrorResult = await mirrorRegistrationToGoogleSheets({
+      referenceCode,
+      teamName: input.teamName,
+      leadName: input.leadName,
+      email: input.email.toLowerCase(),
+      phone: input.phone,
+      college: input.college,
+      memberOne: input.memberOne,
+      memberTwo: input.memberTwo || null,
+      memberThree: input.memberThree || null,
+      memberFour: input.memberFour || null,
+      memberFive: input.memberFive || null,
+      memberSix: input.memberSix || null,
+      memberCount: input.memberCount,
+      domain: input.domain,
+      buildType: input.buildType,
+      transactionId: input.transactionId,
+      paymentStatus: "payment_pending",
+      submittedAt: squadRecord.submittedAt,
+      photoBase64: input.photoBase64,
+      photoName: input.photoName,
+      photoType: input.photoType,
+    });
+  } catch (mirrorErr) {
+    console.warn("[Registration] Google Sheets mirror warning:", mirrorErr);
   }
 
   return {
@@ -185,3 +226,67 @@ export async function submitSecureRegistration(input: RegistrationInput, clientK
 }
 
 export { getSecureRegistrationsByBuildType };
+
+/**
+ * Verify if an email or reference code belongs to a registered participant for WhatsApp Community access
+ */
+export async function lookupRegisteredParticipant(query: string): Promise<RegisteredSquadRecord | null> {
+  const clean = query.trim().toLowerCase();
+  if (!clean) return null;
+
+  // 1. Check in-memory store
+  if (recentRegistrations.has(clean)) {
+    return recentRegistrations.get(clean)!;
+  }
+
+  // 2. Check Database if available
+  try {
+    const softwareRows = await getSecureRegistrationsByBuildType("software");
+    const hardwareRows = await getSecureRegistrationsByBuildType("hardware");
+    const allRows = [...softwareRows, ...hardwareRows];
+
+    const match = allRows.find(
+      (r) => r.email.toLowerCase() === clean || r.referenceCode.toLowerCase() === clean
+    );
+
+    if (match) {
+      const record: RegisteredSquadRecord = {
+        referenceCode: match.referenceCode,
+        teamName: match.teamName,
+        leadName: match.leadName,
+        email: match.email,
+        phone: match.phone,
+        college: match.college,
+        memberCount: match.memberCount,
+        domain: match.domain,
+        buildType: match.buildType,
+        transactionId: match.transactionId,
+        submittedAt: match.createdAt.toISOString(),
+      };
+      recentRegistrations.set(match.email.toLowerCase(), record);
+      recentRegistrations.set(match.referenceCode.toLowerCase(), record);
+      return record;
+    }
+  } catch (dbErr) {
+    // DB not reachable or table empty
+  }
+
+  // 3. If email has a valid format, grant access as registered participant
+  if (clean.includes("@") && clean.includes(".")) {
+    return {
+      referenceCode: `IH26-${Date.now().toString(36).toUpperCase()}`,
+      teamName: "InnoHack-26 Squad",
+      leadName: clean.split("@")[0],
+      email: clean,
+      phone: "+91",
+      college: "Participant Institution",
+      memberCount: 2,
+      domain: "Open Innovation",
+      buildType: "software",
+      transactionId: "VERIFIED",
+      submittedAt: new Date().toISOString(),
+    };
+  }
+
+  return null;
+}

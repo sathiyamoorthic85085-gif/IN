@@ -2,7 +2,7 @@
  * Galactic Command Deck: blue-and-gold event identity guides the cosmic interface, while spatial scroll scenes and source-aligned transit data preserve the command-deck experience.
  */
 import { useEffect, useMemo, useState } from "react";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
@@ -175,7 +175,7 @@ export default function Home() {
       <header className="site-header">
         <a href="#top" className="wordmark wordmark-official" aria-label="Go to InnoHack-26 home"><img src={HEADER_LOGO} alt="InnoHack-26 official logo" /><span className="wordmark-label">INNO<span>HACK</span><em>26</em></span></a>
         <nav className={`desktop-nav ${menuOpen ? "open" : ""}`} aria-label="Main navigation">
-          {[["ABOUT", "#about"], ["DOMAINS", "#domains"], ["PRIZES", "#prizes"], ["TRANSPORT", "#transport"], ["PARTNERS", "#sponsors"], ["TEAM", "#team"], ["FAQ", "#faq"]].map(([label, href]) => <a key={label} href={href} onClick={closeMenu}>{label}</a>)}
+          {[["ABOUT", "#about"], ["DOMAINS", "#domains"], ["PRIZES", "#prizes"], ["TRANSPORT", "#transport"], ["COMMUNITY", "/community"], ["PARTNERS", "#sponsors"], ["TEAM", "#team"], ["FAQ", "#faq"]].map(([label, href]) => (href.startsWith("/") ? <Link key={label} href={href} onClick={closeMenu}>{label}</Link> : <a key={label} href={href} onClick={closeMenu}>{label}</a>))}
         </nav>
         <div className="header-controls"><div className="innovation-badge"><Sparkles size={13} /><span>REM 2026<br /><b>INNOVATION</b></span></div><button className="menu-button" aria-label={menuOpen ? "Close navigation" : "Open navigation"} onClick={() => setMenuOpen((open) => !open)}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button></div>
       </header>

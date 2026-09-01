@@ -9,15 +9,28 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Register from "./pages/Register";
 
+const Community = lazy(() => import("./pages/Community"));
 const AdminRegistrations = lazy(() => import("./pages/AdminRegistrations"));
 
 function Router() {
-  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/register" component={Register} />
-      <Route path="/admin/registrations">{() => <Suspense fallback={<main className="admin-state">Loading organiser access…</main>}><AdminRegistrations /></Suspense>}</Route>
+      <Route path="/community">
+        {() => (
+          <Suspense fallback={<main className="registration-page"><div className="registration-shell">Opening Command Deck…</div></main>}>
+            <Community />
+          </Suspense>
+        )}
+      </Route>
+      <Route path="/admin/registrations">
+        {() => (
+          <Suspense fallback={<main className="admin-state">Loading organiser access…</main>}>
+            <AdminRegistrations />
+          </Suspense>
+        )}
+      </Route>
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
