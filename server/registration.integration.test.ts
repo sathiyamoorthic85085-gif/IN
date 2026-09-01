@@ -25,7 +25,9 @@ const validSubmission = {
   memberTwo: "Meera Devi",
   memberThree: "Surya Raj",
   memberFour: "Kavi Priya",
-  memberCount: 4,
+  memberFive: "Priya S",
+  memberSix: "Dinesh K",
+  memberCount: 6,
   domain: "AI, Electronics & Intelligent Systems" as const,
   buildType: "hardware" as const,
   transactionId: "UPI-9876543210",
@@ -73,6 +75,8 @@ describe("registration integration contracts", () => {
                 memberTwo: "B",
                 memberThree: null,
                 memberFour: null,
+                memberFive: null,
+                memberSix: null,
                 memberCount: 2,
                 domain: "Open Innovation",
                 buildType,
@@ -93,6 +97,8 @@ describe("registration integration contracts", () => {
                 memberTwo: "D",
                 memberThree: null,
                 memberFour: null,
+                memberFive: null,
+                memberSix: null,
                 memberCount: 2,
                 domain: "Robotics & Drones",
                 buildType,
@@ -104,15 +110,15 @@ describe("registration integration contracts", () => {
       );
   });
 
-  it("submits a four-member hardware squad with UTR through the encrypted storage boundary", async () => {
+  it("submits a six-member hardware squad with UTR through the encrypted storage boundary", async () => {
     const result = await appRouter.createCaller(context()).registration.submit(validSubmission);
     expect(result.paymentStatus).toBe("payment_pending");
     expect(mocked.createSecureRegistration).toHaveBeenCalledWith(
       expect.objectContaining({
         buildType: "hardware",
-        memberCount: 4,
+        memberCount: 6,
         transactionId: "UPI-9876543210",
-        memberFour: "Kavi Priya",
+        memberSix: "Dinesh K",
       })
     );
   });

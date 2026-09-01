@@ -97,9 +97,11 @@ export type SecureRegistrationInput = {
   phone: string;
   college: string;
   memberOne: string;
-  memberTwo: string;
+  memberTwo?: string;
   memberThree?: string;
   memberFour?: string;
+  memberFive?: string;
+  memberSix?: string;
   memberCount: number;
   domain: string;
   buildType: "software" | "hardware";
@@ -114,9 +116,11 @@ const decodeRegistration = (row: typeof softwareRegistrations.$inferSelect, buil
   phone: decryptRegistrationValue(row.phoneCipher),
   college: decryptRegistrationValue(row.collegeCipher),
   memberOne: decryptRegistrationValue(row.memberOneCipher),
-  memberTwo: decryptRegistrationValue(row.memberTwoCipher),
+  memberTwo: row.memberTwoCipher ? decryptRegistrationValue(row.memberTwoCipher) : null,
   memberThree: row.memberThreeCipher ? decryptRegistrationValue(row.memberThreeCipher) : null,
   memberFour: row.memberFourCipher ? decryptRegistrationValue(row.memberFourCipher) : null,
+  memberFive: row.memberFiveCipher ? decryptRegistrationValue(row.memberFiveCipher) : null,
+  memberSix: row.memberSixCipher ? decryptRegistrationValue(row.memberSixCipher) : null,
   memberCount: row.memberCount,
   domain: row.domain,
   buildType,
@@ -137,9 +141,11 @@ export async function createSecureRegistration(registration: SecureRegistrationI
     phoneCipher: encryptRegistrationValue(registration.phone),
     collegeCipher: encryptRegistrationValue(registration.college),
     memberOneCipher: encryptRegistrationValue(registration.memberOne),
-    memberTwoCipher: encryptRegistrationValue(registration.memberTwo),
+    memberTwoCipher: registration.memberTwo ? encryptRegistrationValue(registration.memberTwo) : null,
     memberThreeCipher: registration.memberThree ? encryptRegistrationValue(registration.memberThree) : null,
     memberFourCipher: registration.memberFour ? encryptRegistrationValue(registration.memberFour) : null,
+    memberFiveCipher: registration.memberFive ? encryptRegistrationValue(registration.memberFive) : null,
+    memberSixCipher: registration.memberSix ? encryptRegistrationValue(registration.memberSix) : null,
     memberCount: registration.memberCount,
     domain: registration.domain,
     transactionCipher: encryptRegistrationValue(registration.transactionId),

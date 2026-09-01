@@ -10,51 +10,63 @@ const registration: GoogleSheetsRegistration = {
   college: "ESEC",
   memberOne: "Asha Kumar",
   memberTwo: "Ravi Kumar",
-  memberThree: null,
-  memberFour: null,
-  memberCount: 2,
+  memberThree: "Meera Devi",
+  memberFour: "Surya Raj",
+  memberFive: "Kavi Priya",
+  memberSix: "Dinesh Raj",
+  memberCount: 6,
   domain: "Open Innovation",
   buildType: "software",
   transactionId: "UPI-1234567890",
   paymentStatus: "payment_pending",
   submittedAt: "2026-09-01T00:00:00.000Z",
+  photoBase64: "data:image/jpeg;base64,dGVzdA==",
+  photoName: "payment_proof.jpg",
+  photoType: "image/jpeg",
 };
 
-describe("Google Sheets registration mirror", () => {
+describe("Google Sheets registration backend", () => {
   beforeEach(() => {
     vi.unstubAllGlobals();
+    delete process.env.GOOGLE_SHEETS_WEBHOOK_URL;
+    delete process.env.GOOGLE_SHEETS_SCRIPT_URL;
     delete process.env.GOOGLE_SHEETS_MIRROR_URL;
     delete process.env.GOOGLE_SHEETS_MIRROR_TOKEN;
     delete process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
   });
 
-  it("does nothing when the mirror is not configured", async () => {
+  it("does nothing when the webhook is not configured", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
-    await expect(mirrorRegistrationToGoogleSheets(registration)).resolves.toBe("not_configured");
+    const result = await mirrorRegistrationToGoogleSheets(registration);
+    expect(result.status).toBe("not_configured");
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("posts the exact registration to the configured worksheet", async () => {
-    process.env.GOOGLE_SHEETS_MIRROR_URL = "https://example.com/mirror";
-    process.env.GOOGLE_SHEETS_MIRROR_TOKEN = "test-token";
-    process.env.GOOGLE_SHEETS_SPREADSHEET_ID = "sheet-id";
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+  it("posts the registration with photo to the configured webhook", async () => {
+    process.env.GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/test/exec";
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      text: () => Promise.resolve(JSON.stringify({ success: true, photoUrl: "https://drive.google.com/file/d/123" })),
+    });
     vi.stubGlobal("fetch", fetchMock);
 
-    await expect(mirrorRegistrationToGoogleSheets(registration)).resolves.toBe("synced");
-    expect(fetchMock).toHaveBeenCalledWith("https://example.com/mirror", expect.objectContaining({
-      method: "POST",
-      headers: expect.objectContaining({ "x-innohack-backup-token": "test-token" }),
-      body: JSON.stringify({ spreadsheetId: "sheet-id", worksheet: "Software", registration }),
-    }));
+    const result = await mirrorRegistrationToGoogleSheets(registration);
+    expect(result.status).toBe("synced");
+    expect(result.photoUrl).toBe("https://drive.google.com/file/d/123");
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://script.google.com/macros/s/test/exec",
+      expect.objectContaining({
+        method: "POST",
+        body: expect.stringContaining("IH26-TEST"),
+      })
+    );
   });
 
-  it("keeps the primary flow non-blocking when the mirror fails", async () => {
-    process.env.GOOGLE_SHEETS_MIRROR_URL = "https://example.com/mirror";
-    process.env.GOOGLE_SHEETS_MIRROR_TOKEN = "test-token";
-    process.env.GOOGLE_SHEETS_SPREADSHEET_ID = "sheet-id";
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false }));
-    await expect(mirrorRegistrationToGoogleSheets(registration)).resolves.toBe("pending");
+  it("keeps the primary flow non-blocking when Google Apps Script is unreachable", async () => {
+    process.env.GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/test/exec";
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("Network timeout")));
+    const result = await mirrorRegistrationToGoogleSheets(registration);
+    expect(result.status).toBe("pending");
   });
 });

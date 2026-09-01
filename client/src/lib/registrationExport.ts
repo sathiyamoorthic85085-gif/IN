@@ -8,9 +8,11 @@ export type RegistrationExportRow = {
   phone: string;
   college: string;
   memberOne: string;
-  memberTwo: string;
+  memberTwo?: string | null;
   memberThree: string | null;
   memberFour: string | null;
+  memberFive?: string | null;
+  memberSix?: string | null;
   memberCount: number;
   domain: string;
   buildType: "software" | "hardware";
@@ -38,9 +40,11 @@ const spreadsheetRows = (rows: RegistrationExportRow[]) => rows.map((row) => ({
   "Phone (Text)": String(row.phone),
   "College / Institution (Text)": String(row.college),
   "Member 1 (Text)": String(row.memberOne),
-  "Member 2 (Text)": String(row.memberTwo),
+  "Member 2 (Text)": row.memberTwo ?? "",
   "Member 3 (Text)": row.memberThree ?? "",
   "Member 4 (Text)": row.memberFour ?? "",
+  "Member 5 (Text)": row.memberFive ?? "",
+  "Member 6 (Text)": row.memberSix ?? "",
   "Member Count (Number)": Number(row.memberCount),
   "Innovation Domain (Text)": String(row.domain),
   "Build Type (Text)": String(row.buildType),
