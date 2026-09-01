@@ -1,30 +1,74 @@
 import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 import type { GoogleSheetsRegistration } from "./googleSheetsMirror";
 
 interface GoogleServiceConfig {
   clientEmail: string;
   privateKey: string;
+  privateKeyId?: string;
   spreadsheetId: string;
 }
 
 let cachedAccessToken: { token: string; expiresAt: number } | null = null;
 
 export function getGoogleServiceConfig(): GoogleServiceConfig | null {
-  const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || process.env.GOOGLE_CLIENT_EMAIL;
-  let privateKey = process.env.GOOGLE_PRIVATE_KEY;
   const spreadsheetId =
     process.env.GOOGLE_SHEETS_SPREADSHEET_ID ||
     process.env.GOOGLE_SHEET_ID ||
     "1lRU5V6jQopSxwvSZEMoFJurwFZEuMH2pgbjIACHSXP0";
 
-  if (!clientEmail || !privateKey || !spreadsheetId) {
-    return null;
+  // 1. Try GOOGLE_SERVICE_ACCOUNT_JSON environment variable (full JSON string)
+  if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+    try {
+      const parsed = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+      if (parsed.client_email && parsed.private_key) {
+        return {
+          clientEmail: parsed.client_email,
+          privateKey: parsed.private_key.replace(/\\n/g, "\n"),
+          privateKeyId: parsed.private_key_id,
+          spreadsheetId,
+        };
+      }
+    } catch {
+      // invalid JSON in env
+    }
   }
 
-  // Handle escaped newlines in environment variable
-  privateKey = privateKey.replace(/\\n/g, "\n");
+  // 2. Try explicit environment variables
+  const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || process.env.GOOGLE_CLIENT_EMAIL;
+  let privateKey = process.env.GOOGLE_PRIVATE_KEY;
 
-  return { clientEmail, privateKey, spreadsheetId };
+  if (clientEmail && privateKey) {
+    privateKey = privateKey.replace(/\\n/g, "\n");
+    return {
+      clientEmail,
+      privateKey,
+      spreadsheetId,
+    };
+  }
+
+  // 3. Try GOOGLE_APPLICATION_CREDENTIALS path if set
+  if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    try {
+      const filePath = path.resolve(process.cwd(), process.env.GOOGLE_APPLICATION_CREDENTIALS);
+      if (fs.existsSync(filePath)) {
+        const parsed = JSON.parse(fs.readFileSync(filePath, "utf8"));
+        if (parsed.client_email && parsed.private_key) {
+          return {
+            clientEmail: parsed.client_email,
+            privateKey: parsed.private_key.replace(/\\n/g, "\n"),
+            privateKeyId: parsed.private_key_id,
+            spreadsheetId,
+          };
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  return null;
 }
 
 export function isGoogleServiceAccountConfigured(): boolean {
@@ -45,7 +89,11 @@ export async function getGoogleAccessToken(): Promise<string> {
   }
 
   const now = Math.floor(Date.now() / 1000);
-  const header = { alg: "RS256", typ: "JWT" };
+  const header: Record<string, string> = { alg: "RS256", typ: "JWT" };
+  if (config.privateKeyId) {
+    header.kid = config.privateKeyId;
+  }
+
   const payload = {
     iss: config.clientEmail,
     scope: "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive",
@@ -97,8 +145,6 @@ export async function uploadPhotoToGoogleDrive(
 ): Promise<string | null> {
   try {
     const base64Data = photoBase64.includes(",") ? photoBase64.split(",")[1] : photoBase64;
-    const fileBuffer = Buffer.from(base64Data, "base64");
-
     const boundary = "-------314159265358979323846";
     const delimiter = `\r\n--${boundary}\r\n`;
     const closeDelimiter = `\r\n--${boundary}--`;
@@ -141,7 +187,6 @@ export async function uploadPhotoToGoogleDrive(
 
     const uploaded = (await uploadRes.json()) as { id: string; webViewLink?: string };
 
-    // Set permission to anyone with the link can view
     try {
       await fetch(`https://www.googleapis.com/drive/v3/files/${uploaded.id}/permissions`, {
         method: "POST",
@@ -225,7 +270,6 @@ export async function appendRegistrationToGoogleSheetsDirect(
       registration.buildType === "software" ? "Software" : "Hardware",
     ];
 
-    // Append to sheets
     for (const sheetName of targetSheets) {
       try {
         const range = encodeURIComponent(`'${sheetName}'!A:S`);
