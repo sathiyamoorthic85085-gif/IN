@@ -6,14 +6,8 @@
   "buildCommand": "pnpm vercel-build",
   "outputDirectory": "dist/public",
   "functions": {
-    "api/help.ts": {
+    "api/*.ts": {
       "maxDuration": 30
-    },
-    "api/registration.ts": {
-      "maxDuration": 30
-    },
-    "api/health.ts": {
-      "maxDuration": 10
     }
   },
   "rewrites": [
@@ -22,7 +16,7 @@
       "destination": "/api/help"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api/|media/|assets/|favicon.ico|manifest.webmanifest|sw.js|robots.txt|sitemap.xml).*)",
       "destination": "/index.html"
     }
   ]
