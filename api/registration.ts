@@ -9,7 +9,11 @@ export default async function handler(req: { method?: string; body?: unknown; he
   res.setHeader("Cache-Control", "no-store");
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
   const parsed = registrationInputSchema.safeParse(parseBody(req.body));
-  if (!parsed.success) return res.status(400).json({ error: "Please complete every required registration field correctly." });
+  if (!parsed.success) {
+    const firstIssue = parsed.error.issues[0];
+    const message = firstIssue?.message || "Please complete every required registration field correctly.";
+    return res.status(400).json({ error: message });
+  }
   try {
     const result = await submitSecureRegistration(parsed.data, requestClientKey(req.headers ?? {}));
     return res.status(201).json(result);
