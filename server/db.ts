@@ -1,11 +1,16 @@
 import { desc, eq, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { hardwareRegistrations, softwareRegistrations, InsertUser, users } from "../drizzle/schema";
-import { decryptRegistrationValue, encryptRegistrationValue, transactionFingerprint, transactionFingerprints } from "./registrationCrypto";
+import {
+  decryptRegistrationValue,
+  encryptRegistrationValue,
+  transactionFingerprint,
+  transactionFingerprints,
+} from "./registrationCrypto";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
-// Lazily create the drizzle instance so local tooling can run without a DB.
+// Lazily create the drizzle instance so local tooling and Google Sheets backend can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
@@ -56,8 +61,8 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       values.role = user.role;
       updateSet.role = user.role;
     } else if (process.env.OWNER_OPEN_ID && user.openId === process.env.OWNER_OPEN_ID) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
+      values.role = "admin";
+      updateSet.role = "admin";
     }
 
     if (!values.lastSignedIn) {
@@ -108,7 +113,10 @@ export type SecureRegistrationInput = {
   transactionId: string;
 };
 
-const decodeRegistration = (row: typeof softwareRegistrations.$inferSelect, buildType: "software" | "hardware") => ({
+const decodeRegistration = (
+  row: typeof softwareRegistrations.$inferSelect,
+  buildType: "software" | "hardware"
+) => ({
   referenceCode: row.referenceCode,
   teamName: decryptRegistrationValue(row.teamNameCipher),
   leadName: decryptRegistrationValue(row.leadNameCipher),
@@ -129,9 +137,12 @@ const decodeRegistration = (row: typeof softwareRegistrations.$inferSelect, buil
   createdAt: row.createdAt,
 });
 
-export async function createSecureRegistration(registration: SecureRegistrationInput) {
+export async function createSecureRegistration(registration: SecureRegistrationInput): Promise<void> {
   const db = await getDb();
-  if (!db) throw new Error("Registration storage is unavailable");
+  if (!db) {
+    console.warn("[Database] Registration DB storage skipped: DATABASE_URL not configured");
+    return;
+  }
 
   const values = {
     referenceCode: registration.referenceCode,
@@ -156,19 +167,38 @@ export async function createSecureRegistration(registration: SecureRegistrationI
   else await db.insert(hardwareRegistrations).values(values);
 }
 
-export async function transactionAlreadyUsed(transactionId: string) {
+export async function transactionAlreadyUsed(transactionId: string): Promise<boolean> {
   const db = await getDb();
-  if (!db) throw new Error("Registration storage is unavailable");
-  const fingerprints = transactionFingerprints(transactionId);
-  const result = await db.select({ id: softwareRegistrations.id }).from(softwareRegistrations).where(inArray(softwareRegistrations.transactionFingerprint, fingerprints)).limit(1);
-  if (result.length) return true;
-  const hardwareResult = await db.select({ id: hardwareRegistrations.id }).from(hardwareRegistrations).where(inArray(hardwareRegistrations.transactionFingerprint, fingerprints)).limit(1);
-  return hardwareResult.length > 0;
+  if (!db) return false;
+  try {
+    const fingerprints = transactionFingerprints(transactionId);
+    const result = await db
+      .select({ id: softwareRegistrations.id })
+      .from(softwareRegistrations)
+      .where(inArray(softwareRegistrations.transactionFingerprint, fingerprints))
+      .limit(1);
+    if (result.length) return true;
+    const hardwareResult = await db
+      .select({ id: hardwareRegistrations.id })
+      .from(hardwareRegistrations)
+      .where(inArray(hardwareRegistrations.transactionFingerprint, fingerprints))
+      .limit(1);
+    return hardwareResult.length > 0;
+  } catch (error) {
+    console.warn("[Database] Duplicate transaction check failed:", error);
+    return false;
+  }
 }
 
 export async function getSecureRegistrationsByBuildType(buildType: "software" | "hardware") {
   const db = await getDb();
   if (!db) throw new Error("Registration storage is unavailable");
-  if (buildType === "software") return (await db.select().from(softwareRegistrations).orderBy(desc(softwareRegistrations.createdAt))).map((row) => decodeRegistration(row, "software"));
-  return (await db.select().from(hardwareRegistrations).orderBy(desc(hardwareRegistrations.createdAt))).map((row) => decodeRegistration(row, "hardware"));
+  if (buildType === "software") {
+    return (
+      await db.select().from(softwareRegistrations).orderBy(desc(softwareRegistrations.createdAt))
+    ).map((row) => decodeRegistration(row, "software"));
+  }
+  return (
+    await db.select().from(hardwareRegistrations).orderBy(desc(hardwareRegistrations.createdAt))
+  ).map((row) => decodeRegistration(row, "hardware"));
 }

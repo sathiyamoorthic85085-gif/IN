@@ -29,8 +29,8 @@ async function compressImageFile(file: File): Promise<{ base64: string; name: st
       const img = new Image();
       img.onerror = () => reject(new Error("Unable to decode selected image."));
       img.onload = () => {
-        const MAX_WIDTH = 1200;
-        const MAX_HEIGHT = 1200;
+        const MAX_WIDTH = 900;
+        const MAX_HEIGHT = 900;
         let { width, height } = img;
 
         if (width > MAX_WIDTH || height > MAX_HEIGHT) {
@@ -56,7 +56,7 @@ async function compressImageFile(file: File): Promise<{ base64: string; name: st
           });
         }
         ctx.drawImage(img, 0, 0, width, height);
-        const compressedBase64 = canvas.toDataURL("image/jpeg", 0.85);
+        const compressedBase64 = canvas.toDataURL("image/jpeg", 0.75);
         resolve({
           base64: compressedBase64,
           name: file.name.replace(/\.[^/.]+$/, "") + ".jpg",
@@ -223,10 +223,16 @@ export default function Register() {
       try {
         body = JSON.parse(responseText) as { referenceCode?: string; error?: string };
       } catch {
-        throw new Error("The registration service did not return JSON. Please verify your connection and try again.");
+        if (response.status === 413) {
+          throw new Error("The uploaded photo is too large for the server. Please attach a smaller screenshot.");
+        }
+        if (response.status === 504) {
+          throw new Error("Registration timed out. Please check your network and try again.");
+        }
+        throw new Error(`The registration service returned HTTP ${response.status}. Please try again.`);
       }
-      if (!response.ok || !body.referenceCode) {
-        throw new Error(body.error || "Registration could not be saved. Please try again.");
+      if (!response.ok || !body?.referenceCode) {
+        throw new Error(body?.error || `Registration could not be saved (HTTP ${response.status}).`);
       }
       setReferenceCode(body.referenceCode);
       toast.success("Registration and payment reference saved. Keep your registration reference.");
