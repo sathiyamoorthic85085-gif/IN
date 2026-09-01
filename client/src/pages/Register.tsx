@@ -21,25 +21,28 @@ const domains = [
 ] as const;
 
 // Client-side image compression helper to ensure fast upload
-async function compressImageFile(file: File): Promise<{ base64: string; name: string; type: string; size: number }> {
+const MAX_PHOTO_BYTES = 200 * 1024; // 200 KB limit
+
+async function compressImageFile(
+  file: File
+): Promise<{ base64: string; name: string; type: string; size: number }> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onerror = () => reject(new Error("Unable to read selected photo."));
+    reader.onerror = () => reject(new Error("Failed to read image file."));
     reader.onload = (event) => {
       const img = new Image();
       img.onerror = () => reject(new Error("Unable to decode selected image."));
       img.onload = () => {
-        const MAX_WIDTH = 900;
-        const MAX_HEIGHT = 900;
+        const MAX_DIM = 800;
         let { width, height } = img;
 
-        if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+        if (width > MAX_DIM || height > MAX_DIM) {
           if (width > height) {
-            height = Math.round((height * MAX_WIDTH) / width);
-            width = MAX_WIDTH;
+            height = Math.round((height * MAX_DIM) / width);
+            width = MAX_DIM;
           } else {
-            width = Math.round((width * MAX_HEIGHT) / height);
-            height = MAX_HEIGHT;
+            width = Math.round((width * MAX_DIM) / height);
+            height = MAX_DIM;
           }
         }
 
@@ -48,6 +51,9 @@ async function compressImageFile(file: File): Promise<{ base64: string; name: st
         canvas.height = height;
         const ctx = canvas.getContext("2d");
         if (!ctx) {
+          if (file.size > MAX_PHOTO_BYTES) {
+            return reject(new Error(`Screenshot must be 200 KB or less. (Selected: ${(file.size / 1024).toFixed(1)} KB)`));
+          }
           return resolve({
             base64: event.target?.result as string,
             name: file.name,
@@ -56,12 +62,31 @@ async function compressImageFile(file: File): Promise<{ base64: string; name: st
           });
         }
         ctx.drawImage(img, 0, 0, width, height);
-        const compressedBase64 = canvas.toDataURL("image/jpeg", 0.75);
+
+        // Try quality levels from 0.70 down to 0.40 to guarantee <= 200 KB
+        let quality = 0.70;
+        let compressedBase64 = canvas.toDataURL("image/jpeg", quality);
+        let approxSize = Math.round((compressedBase64.length * 3) / 4);
+
+        while (approxSize > MAX_PHOTO_BYTES && quality > 0.35) {
+          quality -= 0.10;
+          compressedBase64 = canvas.toDataURL("image/jpeg", quality);
+          approxSize = Math.round((compressedBase64.length * 3) / 4);
+        }
+
+        if (approxSize > MAX_PHOTO_BYTES) {
+          return reject(
+            new Error(
+              `Screenshot exceeds the 200 KB limit after compression (${(approxSize / 1024).toFixed(1)} KB). Please choose a smaller image.`
+            )
+          );
+        }
+
         resolve({
           base64: compressedBase64,
           name: file.name.replace(/\.[^/.]+$/, "") + ".jpg",
           type: "image/jpeg",
-          size: Math.round((compressedBase64.length * 3) / 4),
+          size: approxSize,
         });
       };
       img.src = event.target?.result as string;
@@ -553,7 +578,9 @@ export default function Register() {
 
           {/* Photo / Payment Screenshot Upload Dropzone */}
           <div className="photo-upload-section">
-            <label>PAYMENT SCREENSHOT / PROOF PHOTO (ATTACHED TO GOOGLE SHEET & DRIVE)</label>
+            <label>
+              PAYMENT SCREENSHOT / PROOF PHOTO <span style={{ color: "#38bdf8", fontSize: "0.85em", marginLeft: 6 }}>(MAX 200 KB)</span>
+            </label>
             <input
               type="file"
               ref={fileInputRef}
@@ -567,7 +594,9 @@ export default function Register() {
                 <img src={photo.previewUrl} alt="Payment proof preview" className="photo-preview-img" />
                 <div className="photo-preview-meta">
                   <div className="photo-preview-name">{photo.name}</div>
-                  <div className="photo-preview-size">{(photo.size / 1024).toFixed(1)} KB (Optimized)</div>
+                  <div className="photo-preview-size" style={{ color: photo.size <= 200 * 1024 ? "#4ade80" : "#f87171" }}>
+                    {(photo.size / 1024).toFixed(1)} KB / 200 KB Max
+                  </div>
                 </div>
                 <button type="button" className="photo-remove-btn" onClick={removePhoto}>
                   <X size={14} style={{ display: "inline", marginRight: 4 }} /> REMOVE
@@ -587,7 +616,7 @@ export default function Register() {
                 <UploadCloud size={32} />
                 <div>
                   <p>Click or drag & drop payment screenshot here</p>
-                  <span>Accepts PNG, JPG, JPEG, WEBP · Auto-optimized for Google Drive storage</span>
+                  <span>Accepts PNG, JPG, JPEG, WEBP · <strong>Max file size: 200 KB</strong> (auto-compressed)</span>
                 </div>
               </div>
             )}
