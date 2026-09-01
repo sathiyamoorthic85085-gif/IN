@@ -151,10 +151,14 @@ export async function uploadPhotoToGoogleDrive(
     const delimiter = `\r\n--${boundary}\r\n`;
     const closeDelimiter = `\r\n--${boundary}--`;
 
-    const metadata = {
+    const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID || process.env.GOOGLE_FOLDER_ID;
+    const metadata: Record<string, any> = {
       name: `${Date.now()}-${photoName}`,
       mimeType: photoType,
     };
+    if (folderId) {
+      metadata.parents = [folderId.trim()];
+    }
 
     const multipartRequestBody = Buffer.concat([
       Buffer.from(

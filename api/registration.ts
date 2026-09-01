@@ -203,6 +203,25 @@ async function getGoogleOAuth2Token(config: { clientEmail: string; privateKey: s
   return data.access_token;
 }
 
+async function findSharedFolderId(accessToken: string): Promise<string | null> {
+  const explicitFolder = process.env.GOOGLE_DRIVE_FOLDER_ID || process.env.GOOGLE_FOLDER_ID;
+  if (explicitFolder) return explicitFolder.trim();
+
+  try {
+    const res = await fetch(
+      "https://www.googleapis.com/drive/v3/files?q=mimeType='application/vnd.google-apps.folder'+and+trashed=false&fields=files(id,name)",
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    if (res.ok) {
+      const data = await res.json();
+      return data.files?.[0]?.id || null;
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
 async function uploadPhotoToGoogleDrive(
   accessToken: string,
   photoBase64: string,
@@ -215,10 +234,15 @@ async function uploadPhotoToGoogleDrive(
     const delimiter = `\r\n--${boundary}\r\n`;
     const closeDelimiter = `\r\n--${boundary}--`;
 
-    const metadata = {
+    const parentFolderId = await findSharedFolderId(accessToken);
+
+    const metadata: Record<string, any> = {
       name: `${Date.now()}-${photoName}`,
       mimeType: photoType,
     };
+    if (parentFolderId) {
+      metadata.parents = [parentFolderId];
+    }
 
     const multipartRequestBody = Buffer.concat([
       Buffer.from(
@@ -246,6 +270,8 @@ async function uploadPhotoToGoogleDrive(
     );
 
     if (!uploadRes.ok) {
+      const errText = await uploadRes.text();
+      console.warn("[GoogleDrive] Upload response not ok:", uploadRes.status, errText);
       return null;
     }
 
