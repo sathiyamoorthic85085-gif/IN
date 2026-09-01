@@ -203,12 +203,97 @@ async function getGoogleOAuth2Token(config: { clientEmail: string; privateKey: s
   return data.access_token;
 }
 
+async function uploadPhotoToGoogleDrive(
+  accessToken: string,
+  photoBase64: string,
+  photoName: string = "payment_receipt.jpg",
+  photoType: string = "image/jpeg"
+): Promise<string | null> {
+  try {
+    const base64Data = photoBase64.replace(/^data:image\/\w+;base64,/, "");
+    const boundary = "-------314159265358979323846";
+    const delimiter = `\r\n--${boundary}\r\n`;
+    const closeDelimiter = `\r\n--${boundary}--`;
+
+    const metadata = {
+      name: `${Date.now()}-${photoName}`,
+      mimeType: photoType,
+    };
+
+    const multipartRequestBody = Buffer.concat([
+      Buffer.from(
+        delimiter +
+          "Content-Type: application/json; charset=UTF-8\r\n\r\n" +
+          JSON.stringify(metadata) +
+          delimiter +
+          `Content-Type: ${photoType}\r\n` +
+          "Content-Transfer-Encoding: base64\r\n\r\n"
+      ),
+      Buffer.from(base64Data),
+      Buffer.from(closeDelimiter),
+    ]);
+
+    const uploadRes = await fetch(
+      "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": `multipart/related; boundary=${boundary}`,
+        },
+        body: multipartRequestBody,
+      }
+    );
+
+    if (!uploadRes.ok) {
+      return null;
+    }
+
+    const uploaded = (await uploadRes.json()) as { id: string; webViewLink?: string };
+
+    try {
+      await fetch(`https://www.googleapis.com/drive/v3/files/${uploaded.id}/permissions`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ role: "reader", type: "anyone" }),
+      });
+    } catch {
+      // Permission non-fatal
+    }
+
+    return uploaded.webViewLink || `https://drive.google.com/file/d/${uploaded.id}/view`;
+  } catch (err) {
+    console.warn("[GoogleDrive] Upload warning:", err);
+    return null;
+  }
+}
+
 async function syncToGoogleSheetsDirect(registration: any): Promise<{ status: string; photoUrl?: string }> {
   const config = getGoogleServiceAccountConfig();
   if (!config) return { status: "not_configured" };
 
   try {
     const accessToken = await getGoogleOAuth2Token(config);
+
+    // Upload photo to Google Drive if attached
+    let photoUrl: string | null = null;
+    if (registration.photoBase64) {
+      photoUrl = await uploadPhotoToGoogleDrive(
+        accessToken,
+        registration.photoBase64,
+        registration.photoName || `${registration.referenceCode}.jpg`,
+        registration.photoType || "image/jpeg"
+      );
+    }
+
+    const photoCell = photoUrl
+      ? `=HYPERLINK("${photoUrl}", "View Screenshot")`
+      : registration.photoBase64
+      ? "Payment Screenshot Attached"
+      : "No Screenshot Attached";
 
     const HEADERS = [
       "Timestamp",
@@ -251,7 +336,7 @@ async function syncToGoogleSheetsDirect(registration: any): Promise<{ status: st
       registration.domain,
       registration.buildType.toUpperCase(),
       registration.transactionId,
-      registration.photoBase64 ? "Payment Screenshot Attached" : "No Screenshot",
+      photoCell,
       registration.paymentStatus,
     ];
 
