@@ -217,11 +217,20 @@ export async function uploadPhotoToGoogleDrive(
  * Format registration row for Google Sheets (Google Forms layout)
  */
 function buildRowValues(registration: GoogleSheetsRegistration, photoUrl?: string | null): (string | number)[] {
-  const photoCell = photoUrl
-    ? `=HYPERLINK("${photoUrl}", "View Screenshot")`
-    : registration.photoBase64
-    ? "Photo Attached"
-    : "No Photo";
+  let photoCell = "No Photo";
+  if (photoUrl) {
+    const match = photoUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || photoUrl.match(/id=([a-zA-Z0-9_-]+)/);
+    if (match && match[1]) {
+      const fileId = match[1];
+      const driveView = `https://drive.google.com/file/d/${fileId}/view`;
+      const thumbUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
+      photoCell = `=HYPERLINK("${driveView}", IMAGE("${thumbUrl}", 1))`;
+    } else {
+      photoCell = `=HYPERLINK("${photoUrl}", "View Screenshot")`;
+    }
+  } else if (registration.photoBase64) {
+    photoCell = "Photo Attached";
+  }
 
   return [
     registration.submittedAt,

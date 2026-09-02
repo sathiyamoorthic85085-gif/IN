@@ -22,6 +22,13 @@ export const eventAssets = {
     abhiRuban: "/media/abhi-ruban-eie-event-lead_c19bb0b4.jpeg",
     roboticsLead: "/media/innohack26-robotics-team-lead_0bacd821.png",
   },
+  leadership: {
+    mechHod: "/media/innohack26-mech-hod.jpg",
+    roboticsHod: "/media/innohack26-robotics-hod.jpg",
+    roboticsFacultyCoordinator: "/media/innohack26-robotics-faculty-coordinator.jpg",
+    mechStudentCoordinator1: "/media/innohack26-mech-student-coordinator-1.jpg",
+    mechStudentCoordinator2: "/media/innohack26-mech-student-coordinator-2.jpg",
+  },
   contacts: {
     vinodhini: "/media/innohack26-vinodhini-c-eie-faculty-coordinator_913ccc76.png",
   },
@@ -48,9 +55,13 @@ export const offlineEventMediaAssets = [
   eventAssets.team.sathiyamoorthi,
   eventAssets.team.abhiRuban,
   eventAssets.team.roboticsLead,
+  eventAssets.leadership.mechHod,
+  eventAssets.leadership.roboticsHod,
+  eventAssets.leadership.roboticsFacultyCoordinator,
+  eventAssets.leadership.mechStudentCoordinator1,
+  eventAssets.leadership.mechStudentCoordinator2,
   eventAssets.contacts.vinodhini,
   eventAssets.partners.nexara,
   eventAssets.partners.misdAutomation,
   ...Object.values(eventAssets.prizeImages),
 ] as const;
-

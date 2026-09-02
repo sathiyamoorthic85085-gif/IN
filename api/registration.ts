@@ -315,11 +315,20 @@ async function syncToGoogleSheetsDirect(registration: any): Promise<{ status: st
       );
     }
 
-    const photoCell = photoUrl
-      ? `=HYPERLINK("${photoUrl}", "View Screenshot")`
-      : registration.photoBase64
-      ? "Payment Screenshot Attached"
-      : "No Screenshot Attached";
+    let photoCell = "No Screenshot Attached";
+    if (photoUrl) {
+      const match = photoUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || photoUrl.match(/id=([a-zA-Z0-9_-]+)/);
+      if (match && match[1]) {
+        const fileId = match[1];
+        const driveView = `https://drive.google.com/file/d/${fileId}/view`;
+        const thumbUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
+        photoCell = `=HYPERLINK("${driveView}", IMAGE("${thumbUrl}", 1))`;
+      } else {
+        photoCell = `=HYPERLINK("${photoUrl}", "View Screenshot")`;
+      }
+    } else if (registration.photoBase64) {
+      photoCell = "Payment Screenshot Attached";
+    }
 
     const HEADERS = [
       "Timestamp",
@@ -441,6 +450,8 @@ async function syncToGoogleSheetsDirect(registration: any): Promise<{ status: st
 // GOOGLE APPS SCRIPT WEBHOOK INTEGRATION
 // -------------------------------------------------------------
 
+export const maxDuration = 60;
+
 async function forwardToGoogleSheetsWebhook(payload: any): Promise<{ status: string; photoUrl?: string }> {
   const webhookUrl = (
     process.env.GOOGLE_SHEETS_WEBHOOK_URL ||
@@ -451,7 +462,7 @@ async function forwardToGoogleSheetsWebhook(payload: any): Promise<{ status: str
   if (!webhookUrl) return { status: "not_configured" };
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 8000);
+  const timeout = setTimeout(() => controller.abort(), 25000);
 
   try {
     const res = await fetch(webhookUrl, {
@@ -539,14 +550,23 @@ export default async function handler(req: any, res: any) {
       photoType: input.photoType,
     };
 
-    // 1. Try Direct Google Service Account
-    let mirrorResult = await syncToGoogleSheetsDirect(registrationRecord);
+    // 1. Try Google Apps Script Webhook first (handles photo upload to Google Drive under user's quota)
+    let mirrorResult: { status: string; photoUrl?: string } = { status: "not_configured" };
+    const webhookConfigured = Boolean(
+      process.env.GOOGLE_SHEETS_WEBHOOK_URL ||
+      process.env.GOOGLE_SHEETS_SCRIPT_URL ||
+      process.env.GOOGLE_SHEETS_MIRROR_URL
+    );
 
-    // 2. If Service Account is not configured or failed, try Webhook
+    if (webhookConfigured) {
+      mirrorResult = await forwardToGoogleSheetsWebhook(registrationRecord);
+    }
+
+    // 2. If Webhook is not configured or failed, fallback to Direct Google Service Account
     if (mirrorResult.status !== "synced") {
-      const webhookRes = await forwardToGoogleSheetsWebhook(registrationRecord);
-      if (webhookRes.status === "synced") {
-        mirrorResult = webhookRes;
+      const directResult = await syncToGoogleSheetsDirect(registrationRecord);
+      if (directResult.status === "synced") {
+        mirrorResult = directResult;
       }
     }
 

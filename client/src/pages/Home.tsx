@@ -67,9 +67,36 @@ const eieCommandHierarchy = {
 } as const;
 
 const leadershipDepartments = [
-  { department: "MECHANICAL ENGINEERING", hod: { name: "HOD PROFILE", detail: "AWAITING ORGANISER DETAILS" }, faculty: { name: "FACULTY COORDINATOR", detail: "PORTRAIT & CONTACT AWAITING" }, student: { name: "STUDENT COORDINATOR", detail: "PORTRAIT & CONTACT AWAITING" } },
-  { department: "ROBOTICS & AUTOMATION", hod: { name: "HOD PROFILE", detail: "AWAITING ORGANISER DETAILS" }, faculty: { name: "FACULTY COORDINATOR", detail: "PORTRAIT & CONTACT AWAITING" }, student: { name: "Sanjeev S.", detail: "TEAM LEAD · FINAL YEAR", phone: "9080861148", profiles: [{ name: "Sanjeev S.", role: "STUDENT COORDINATOR", image: eventAssets.team.roboticsLead }] } },
-  { department: eieCommandHierarchy.department, hod: { name: eieCommandHierarchy.hod, detail: "HEAD OF DEPARTMENT" }, faculty: { name: eieCommandHierarchy.faculty.name, detail: eieCommandHierarchy.faculty.credential, image: eieCommandHierarchy.faculty.image, phone: eieCommandHierarchy.faculty.phone }, student: { name: "EIE STUDENT COORDINATORS", detail: "SATHIYAMOORTHI C. · ABHI RUBAN", phone: eieCommandHierarchy.studentDeskPhone, profiles: eieCommandHierarchy.students } },
+  {
+    department: "MECHANICAL ENGINEERING",
+    hod: { name: "HEAD OF DEPARTMENT", detail: "MECHANICAL ENGINEERING", image: eventAssets.leadership.mechHod },
+    faculty: { name: "FACULTY COORDINATOR", detail: "MECHANICAL ENGINEERING" },
+    student: {
+      name: "MECHANICAL STUDENT COORDINATORS",
+      detail: "STUDENT LEADERSHIP DESK",
+      profiles: [
+        { name: "Student Coordinator", role: "STUDENT LEAD", image: eventAssets.leadership.mechStudentCoordinator1 },
+        { name: "Student Coordinator", role: "STUDENT CO-LEAD", image: eventAssets.leadership.mechStudentCoordinator2 },
+      ],
+    },
+  },
+  {
+    department: "ROBOTICS & AUTOMATION",
+    hod: { name: "HEAD OF DEPARTMENT", detail: "ROBOTICS & AUTOMATION", image: eventAssets.leadership.roboticsHod },
+    faculty: { name: "FACULTY COORDINATOR", detail: "ROBOTICS & AUTOMATION", image: eventAssets.leadership.roboticsFacultyCoordinator },
+    student: {
+      name: "Sanjeev S.",
+      detail: "TEAM LEAD · FINAL YEAR",
+      phone: "9080861148",
+      profiles: [{ name: "Sanjeev S.", role: "STUDENT COORDINATOR", image: eventAssets.team.roboticsLead }],
+    },
+  },
+  {
+    department: eieCommandHierarchy.department,
+    hod: { name: eieCommandHierarchy.hod, detail: "HEAD OF DEPARTMENT" },
+    faculty: { name: eieCommandHierarchy.faculty.name, detail: eieCommandHierarchy.faculty.credential, image: eieCommandHierarchy.faculty.image, phone: eieCommandHierarchy.faculty.phone },
+    student: { name: "EIE STUDENT COORDINATORS", detail: "SATHIYAMOORTHI C. · ABHI RUBAN", phone: eieCommandHierarchy.studentDeskPhone, profiles: eieCommandHierarchy.students },
+  },
 ] as const;
 
 const featuredRoutes = [
@@ -108,13 +135,85 @@ function ProfileLinkPlaceholders({ label }: { label: string }) {
 }
 
 function LeadershipDepartmentCard({ department }: { department: (typeof leadershipDepartments)[number] }) {
-  const isConfirmed = department.department === eieCommandHierarchy.department;
+  const isConfirmed = true;
+  const hodHasImage = "image" in department.hod && Boolean(department.hod.image);
   const facultyHasPhone = "phone" in department.faculty;
-  const facultyHasImage = "image" in department.faculty;
+  const facultyHasImage = "image" in department.faculty && Boolean(department.faculty.image);
   const studentHasPhone = "phone" in department.student;
-  const studentHasProfiles = "profiles" in department.student;
+  const studentHasProfiles = "profiles" in department.student && Array.isArray(department.student.profiles) && department.student.profiles.length > 0;
 
-  return <article className={`leadership-department ${isConfirmed ? "is-confirmed-department" : ""}`}><header><span>{department.department}</span><small>HOD → FACULTY → STUDENT</small></header><div className="leadership-role-stack"><section className="leadership-role-card"><span>01 · HOD</span><div className="leadership-role-copy"><h3>{department.hod.name}</h3><p>{department.hod.detail}</p><ProfileLinkPlaceholders label={`${department.department} HOD`} /></div><div className="leadership-role-placeholder"><UsersRound size={20} /></div></section><i aria-hidden="true" /><section className="leadership-role-card"><span>02 · FACULTY COORDINATOR</span><div className="leadership-role-copy"><h3>{department.faculty.name}</h3><p>{department.faculty.detail}</p>{facultyHasPhone ? <a href={`tel:+91${department.faculty.phone}`}><PhoneCall size={13} /> CALL FACULTY</a> : <button type="button" onClick={() => toast.info(`${department.department} faculty contact is awaiting organiser details.`)}>CONTACT AWAITING DETAILS</button>}<ProfileLinkPlaceholders label={`${department.department} Faculty Coordinator`} /></div>{facultyHasImage ? <img src={department.faculty.image} alt={`Portrait of ${department.faculty.name}, Faculty Coordinator`} /> : <div className="leadership-role-placeholder"><UsersRound size={20} /></div>}</section><i aria-hidden="true" /><section className="leadership-role-card leadership-student-card"><span>03 · STUDENT COORDINATOR</span><div className="leadership-role-copy"><h3>{department.student.name}</h3><p>{department.student.detail}</p>{studentHasPhone ? <a href={`tel:+91${department.student.phone}`}><PhoneCall size={13} /> CALL STUDENT DESK</a> : <button type="button" onClick={() => toast.info(`${department.department} student contact is awaiting organiser details.`)}>CONTACT AWAITING DETAILS</button>}{!studentHasProfiles && <ProfileLinkPlaceholders label={`${department.department} Student Coordinator`} />}</div>{studentHasProfiles ? <div className={`leadership-student-portraits ${department.student.profiles.length === 1 ? "is-single-student" : ""}`}>{department.student.profiles.map((student) => <figure key={student.name}><img src={student.image} alt={`Portrait of ${student.name}, ${student.role}`} /><figcaption><b>{student.name}</b><small>{student.role}</small><ProfileLinkPlaceholders label={student.name} /></figcaption></figure>)}</div> : <div className="leadership-role-placeholder"><UsersRound size={20} /></div>}</section></div></article>;
+  return (
+    <article className={`leadership-department ${isConfirmed ? "is-confirmed-department" : ""}`}>
+      <header>
+        <span>{department.department}</span>
+        <small>HOD → FACULTY → STUDENT</small>
+      </header>
+      <div className="leadership-role-stack">
+        <section className="leadership-role-card">
+          <span>01 · HOD</span>
+          <div className="leadership-role-copy">
+            <h3>{department.hod.name}</h3>
+            <p>{department.hod.detail}</p>
+            <ProfileLinkPlaceholders label={`${department.department} HOD`} />
+          </div>
+          {hodHasImage ? (
+            <img src={department.hod.image} alt={`Portrait of ${department.hod.name}, HOD`} />
+          ) : (
+            <div className="leadership-role-placeholder"><UsersRound size={20} /></div>
+          )}
+        </section>
+        <i aria-hidden="true" />
+        <section className="leadership-role-card">
+          <span>02 · FACULTY COORDINATOR</span>
+          <div className="leadership-role-copy">
+            <h3>{department.faculty.name}</h3>
+            <p>{department.faculty.detail}</p>
+            {facultyHasPhone ? (
+              <a href={`tel:+91${department.faculty.phone}`}><PhoneCall size={13} /> CALL FACULTY</a>
+            ) : (
+              <button type="button" onClick={() => toast.info(`${department.department} faculty coordinator desk.`)}>COORDINATOR DESK</button>
+            )}
+            <ProfileLinkPlaceholders label={`${department.department} Faculty Coordinator`} />
+          </div>
+          {facultyHasImage ? (
+            <img src={department.faculty.image} alt={`Portrait of ${department.faculty.name}, Faculty Coordinator`} />
+          ) : (
+            <div className="leadership-role-placeholder"><UsersRound size={20} /></div>
+          )}
+        </section>
+        <i aria-hidden="true" />
+        <section className="leadership-role-card leadership-student-card">
+          <span>03 · STUDENT COORDINATOR</span>
+          <div className="leadership-role-copy">
+            <h3>{department.student.name}</h3>
+            <p>{department.student.detail}</p>
+            {studentHasPhone ? (
+              <a href={`tel:+91${department.student.phone}`}><PhoneCall size={13} /> CALL STUDENT DESK</a>
+            ) : (
+              <button type="button" onClick={() => toast.info(`${department.department} student coordinators desk.`)}>STUDENT DESK</button>
+            )}
+            {!studentHasProfiles && <ProfileLinkPlaceholders label={`${department.department} Student Coordinator`} />}
+          </div>
+          {studentHasProfiles ? (
+            <div className={`leadership-student-portraits ${department.student.profiles.length === 1 ? "is-single-student" : ""}`}>
+              {department.student.profiles.map((student, sIdx) => (
+                <figure key={`${student.name}-${sIdx}`}>
+                  <img src={student.image} alt={`Portrait of ${student.name}, ${student.role}`} />
+                  <figcaption>
+                    <b>{student.name}</b>
+                    <small>{student.role}</small>
+                    <ProfileLinkPlaceholders label={student.name} />
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          ) : (
+            <div className="leadership-role-placeholder"><UsersRound size={20} /></div>
+          )}
+        </section>
+      </div>
+    </article>
+  );
 }
 
 export default function Home() {

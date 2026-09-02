@@ -5,7 +5,7 @@ InnoHack-26 supports **3 backend options** for storing registrations and payment
 ---
 
 ## Backend Option 1: Google Apps Script Webhook (Recommended & Easiest)
-*Acts exactly like a Google Form response sheet, with zero Google Cloud console setup.*
+*Acts exactly like a Google Form response sheet, with in-cell image viewing and zero Google Cloud console setup.*
 
 ### Step 1: Open Your Google Sheet
 1. Open your Google Sheet (e.g. [InnoHack-26 Registrations](https://sheets.new)).
@@ -16,17 +16,21 @@ InnoHack-26 supports **3 backend options** for storing registrations and payment
 3. Copy all code from [`google-apps-script.js`](file:///Users/apple/Downloads/innohack26-event-site/google-apps-script.js) and paste it into the editor.
 4. Click **Save** (disk icon).
 
-### Step 3: Deploy Web App
-1. Click **Deploy → New deployment**.
-2. Click the gear icon next to "Select type" and select **Web app**.
-3. Set:
-   - **Description**: `InnoHack-26 Registration Backend`
-   - **Execute as**: `Me (<your-google-account>)`
-   - **Who has access**: `Anyone` *(Required for Vercel to submit)*
-4. Click **Deploy** → **Authorize access** → select your Google account → click **Advanced** → **Go to InnoHack-26 (unsafe)** → **Allow**.
-5. Copy the **Web App URL** (e.g., `https://script.google.com/macros/s/.../exec`).
+### Step 3: Run Test & One-Click Fix (If you have existing rows)
+1. In the toolbar function dropdown, select **`testRun`** and click **Run** (Authorize access if prompted).
+2. If you already have existing rows with text links, select **`fixExistingRowsToViewImages`** and click **Run**. This will instantly convert all old rows into visible in-cell images and expand row heights!
 
-### Step 4: Add to Vercel
+### Step 4: Deploy Web App
+1. Click **Deploy → New deployment** (or **Manage deployments → Edit (pencil icon) → New version** if updating).
+2. Set:
+   - **Type**: `Web app`
+   - **Description**: `InnoHack-26 Registration Backend (In-Cell Images)`
+   - **Execute as**: `Me (<your-google-account>)`
+   - **Who has access**: `Anyone` *(Required for registration form to submit)*
+3. Click **Deploy** → **Authorize access** → select your Google account → click **Advanced** → **Go to InnoHack-26 (unsafe)** → **Allow**.
+4. Copy the **Web App URL** (e.g., `https://script.google.com/macros/s/.../exec`).
+
+### Step 5: Add to Vercel
 In your **Vercel Project Settings → Environment Variables**:
 ```env
 GOOGLE_SHEETS_WEBHOOK_URL=https://script.google.com/macros/s/your-deployment-id/exec
@@ -67,8 +71,7 @@ COOKIE_SECRET=your-session-cookie-secret
 
 ---
 
-## What Happens When a Participant Registers:
-1. **Google Sheet Columns**:
-   `[Timestamp, Reference Code, Team Name, Team Lead Name, Email, Phone, College, Squad Size, Member 1, Member 2, Member 3, Member 4, Member 5, Member 6, Domain, Build Type, Transaction ID / UTR, Payment Screenshot / Photo, Payment Status]`
-2. **Payment Screenshots**: Automatically saved to Google Drive and hyperlinked in the sheet (`=HYPERLINK(url, "View Screenshot")`).
-3. **Reference Code**: Participant receives instant confirmation with their unique reference code (e.g. `IH26-M5X9-ABC12`).
+## How Payment Screenshots Are Displayed in Google Sheet:
+1. **In-Cell Visible Thumbnail**: Google Sheets embeds the screenshot preview directly in Column 18 (`=HYPERLINK(driveUrl, IMAGE(thumbnailUrl, 1))`).
+2. **One-Click Full Resolution**: Clicking or hovering the image inside the sheet immediately opens the full-size original photo in Google Drive in a new tab.
+3. **Auto-Sized Row Height**: Rows with images automatically format to 70px height and 140px width so previews are instantly clear to the organisers.

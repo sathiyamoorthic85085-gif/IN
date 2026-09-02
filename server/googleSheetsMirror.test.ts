@@ -33,6 +33,10 @@ describe("Google Sheets registration backend", () => {
     delete process.env.GOOGLE_SHEETS_MIRROR_URL;
     delete process.env.GOOGLE_SHEETS_MIRROR_TOKEN;
     delete process.env.GOOGLE_SHEETS_SPREADSHEET_ID;
+    delete process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    delete process.env.GOOGLE_CLIENT_EMAIL;
+    delete process.env.GOOGLE_PRIVATE_KEY;
+    delete process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
   });
 
   it("does nothing when the webhook is not configured", async () => {
