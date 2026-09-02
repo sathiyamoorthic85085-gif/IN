@@ -507,7 +507,7 @@ button { font-family: inherit; }
 }
 .leadership-role-body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 68px;
+  grid-template-columns: minmax(0, 1fr) 74px;
   gap: 12px;
   align-items: center;
 }
@@ -554,8 +554,8 @@ button { font-family: inherit; }
   background: rgba(22,141,255,.08);
 }
 .leadership-avatar-frame {
-  width: 68px;
-  height: 78px;
+  width: 74px;
+  height: 98px;
   flex-shrink: 0;
   overflow: hidden;
   border: 1px solid rgba(216,179,106,.65);
@@ -602,22 +602,24 @@ button { font-family: inherit; }
 }
 .is-single-student-layout .leadership-student-tile {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 68px;
+  grid-template-columns: minmax(0, 1fr) 74px;
   gap: 12px;
   align-items: center;
 }
 .leadership-student-avatar {
   position: relative;
   width: 100%;
-  height: 92px;
+  aspect-ratio: 3 / 4;
+  max-height: 140px;
   overflow: hidden;
   border: 1px solid rgba(98,185,255,.45);
   background: #020718;
 }
 .is-single-student-layout .leadership-student-avatar {
   grid-column: 2;
-  width: 68px;
-  height: 78px;
+  width: 74px;
+  height: 98px;
+  aspect-ratio: auto;
 }
 .leadership-student-avatar img {
   width: 100%;
@@ -723,11 +725,11 @@ button { font-family: inherit; }
 @media (max-width: 600px) {
   .leadership-department { padding: 14px; }
   .leadership-role-card { padding: 10px; }
-  .leadership-role-body { grid-template-columns: minmax(0, 1fr) 60px; }
-  .leadership-avatar-frame { width: 60px; height: 70px; }
-  .is-single-student-layout .leadership-student-tile { grid-template-columns: minmax(0, 1fr) 60px; }
-  .is-single-student-layout .leadership-student-avatar { width: 60px; height: 70px; }
-  .leadership-student-avatar { height: 80px; }
+  .leadership-role-body { grid-template-columns: minmax(0, 1fr) 68px; }
+  .leadership-avatar-frame { width: 68px; height: 90px; }
+  .is-single-student-layout .leadership-student-tile { grid-template-columns: minmax(0, 1fr) 68px; }
+  .is-single-student-layout .leadership-student-avatar { width: 68px; height: 90px; }
+  .leadership-student-avatar { aspect-ratio: 3 / 4; }
   .participant-help { right: 12px; bottom: 12px; }
   .participant-help-panel { width: min(100vw - 24px, 420px); }
   .participant-help-trigger { min-height: 45px; }

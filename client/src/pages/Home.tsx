@@ -64,8 +64,8 @@ const eieCommandHierarchy = {
   faculty: { name: "Vinodhini C.", credential: "A/P EIE", phone: "6382249016", image: eventAssets.contacts.vinodhini },
   studentDeskPhone: "7708914279",
   students: [
-    { name: "Sathiyamoorthi C.", role: "TECH LEAD", year: "FINAL YEAR · EIE", image: eventAssets.team.sathiyamoorthi },
-    { name: "Abhi Ruban", role: "EVENT LEAD", year: "FINAL YEAR · EIE", image: eventAssets.team.abhiRuban },
+    { name: "Sathiyamoorthi C.", role: "TECH LEAD", year: "3RD YEAR · EIE", image: eventAssets.team.sathiyamoorthi },
+    { name: "Abhi Ruban", role: "EVENT LEAD", year: "3RD YEAR · EIE", image: eventAssets.team.abhiRuban },
   ],
 } as const;
 
@@ -102,7 +102,7 @@ const leadershipDepartments = [
     faculty: { name: eieCommandHierarchy.faculty.name, detail: eieCommandHierarchy.faculty.credential, image: eieCommandHierarchy.faculty.image, phone: eieCommandHierarchy.faculty.phone },
     student: {
       name: "EIE STUDENT COORDINATORS",
-      detail: "SATHIYAMOORTHI C. · ABHI RUBAN",
+      detail: "SATHIYAMOORTHI C. · ABHI RUBAN · 3RD YEAR",
       phone: eieCommandHierarchy.studentDeskPhone,
       profiles: eieCommandHierarchy.students,
     },
