@@ -5,7 +5,7 @@ describe("event media catalogue", () => {
   it("lists unique local media for offline caching", () => {
     expect(offlineEventMediaAssets).toHaveLength(22);
     expect(new Set(offlineEventMediaAssets).size).toBe(offlineEventMediaAssets.length);
-    expect(eventAssets.payment.qr).toBe("/media/innohack26-college-payment-qr-current_92d85bc1.jpeg");
+    expect(eventAssets.payment.qr).toBe("/media/innohack26-college-payment-qr-current_92d85bc1.png");
     expect(offlineEventMediaAssets).toContain(eventAssets.payment.qr);
     expect(offlineEventMediaAssets).toContain(eventAssets.partners.nexara);
     expect(offlineEventMediaAssets).toContain(eventAssets.team.roboticsLead);

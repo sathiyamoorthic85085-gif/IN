@@ -15,7 +15,7 @@ export const eventAssets = {
     participantGuidelines: "/media/main_89d663ac.pdf",
   },
   payment: {
-    qr: "/media/innohack26-college-payment-qr-current_92d85bc1.jpeg",
+    qr: "/media/innohack26-college-payment-qr-current_92d85bc1.png",
   },
   team: {
     sathiyamoorthi: "/media/sathiyamoorthi-c-eie-tech-lead-v2_117a6adf.png",
