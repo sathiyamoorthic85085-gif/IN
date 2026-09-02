@@ -419,32 +419,290 @@ button { font-family: inherit; }
 .team-profile-icon-actions button { width: 24px; height: 24px; }
 @media (max-width: 600px) { .team-command-pyramid { margin-top: 25px; }.pyramid-direct-actions { display: grid; grid-template-columns: 1fr; gap: 9px; }.pyramid-direct-actions a { width: 100%; }.profile-icon-actions { gap: 5px; }.profile-icon-actions button { width: 25px; height: 25px; } }
 
-/* Three-department leadership hierarchy replaces the individual student-card grid. */
-.leadership-department-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 34px; }
-.leadership-department { position: relative; padding: 18px; border: 1px solid rgba(207,224,255,.2); background: linear-gradient(145deg, rgba(8,23,57,.88), rgba(4,10,31,.92)); box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 16px 32px rgba(0,0,0,.2); }
-.leadership-department.is-confirmed-department { border-color: rgba(216,179,106,.72); background: linear-gradient(145deg, rgba(41,30,52,.84), rgba(8,26,61,.94)); }
-.leadership-department > header { display: grid; gap: 7px; padding-bottom: 13px; border-bottom: 1px solid rgba(207,224,255,.16); }
-.leadership-department > header span { color: #fff4cf; font: 600 clamp(24px, 2.4vw, 34px)/.87 "Teko", sans-serif; letter-spacing: .05em; }
-.leadership-department > header small { color: #7fceff; font: 600 7px/1 "JetBrains Mono", monospace; letter-spacing: .12em; }
-.leadership-role-stack { display: flex; flex-direction: column; align-items: stretch; padding-top: 15px; }
-.leadership-role-stack > i { align-self: center; display: block; width: 1px; height: 18px; background: linear-gradient(#d8b36a, #2199ff); box-shadow: 0 0 9px rgba(33,153,255,.5); }
-.leadership-role-card { display: grid; grid-template-columns: minmax(0, 1fr) 62px; gap: 10px; align-items: center; min-height: 92px; padding: 12px; border: 1px solid rgba(98,185,255,.25); background: rgba(2,10,31,.56); }
-.leadership-role-card > span { grid-column: 1 / -1; color: #79c8ff; font: 600 7px/1 "JetBrains Mono", monospace; letter-spacing: .1em; }
-.leadership-role-copy { min-width: 0; }
-.leadership-role-copy h3 { margin: 0; color: #fff; font: 600 24px/.9 "Teko", sans-serif; letter-spacing: .045em; overflow-wrap: anywhere; }
-.leadership-role-copy p { margin: 5px 0 0; color: #b8c8e7; font: 600 7px/1.25 "JetBrains Mono", monospace; letter-spacing: .07em; }
-.leadership-role-copy a, .leadership-role-copy button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 28px; margin-top: 9px; padding: 0 9px; border: 1px solid rgba(216,179,106,.7); color: #0a142a; background: linear-gradient(135deg, #fff0bc, #d8b36a); font: 600 7px/1 "JetBrains Mono", monospace; letter-spacing: .05em; cursor: pointer; }
-.leadership-role-copy button { color: #9ed6ff; border-color: rgba(98,185,255,.42); background: rgba(22,141,255,.08); }
-.leadership-role-card > img, .leadership-role-placeholder { width: 62px; height: 72px; overflow: hidden; object-fit: cover; object-position: center 18%; border: 1px solid rgba(216,179,106,.62); background: linear-gradient(145deg, rgba(33,153,255,.16), rgba(7,13,36,.92)); }
-.leadership-role-placeholder { display: grid; place-items: center; color: #7096c4; }
-.leadership-student-card { grid-template-columns: minmax(0, 1fr) minmax(120px, .85fr); }
-.leadership-student-portraits { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
-.leadership-student-portraits.is-single-student { grid-template-columns: minmax(0, 132px); justify-content: end; }
-.leadership-student-portraits figure { margin: 0; min-width: 0; }
-.leadership-student-portraits img { display: block; width: 100%; aspect-ratio: .78; object-fit: cover; object-position: center 18%; border: 1px solid rgba(98,185,255,.48); }
-.leadership-student-portraits figcaption { display: grid; gap: 2px; margin-top: 5px; }
-.leadership-student-portraits b { color: #fff4cf; font: 600 16px/.9 "Teko", sans-serif; letter-spacing: .035em; overflow-wrap: anywhere; }
-.leadership-student-portraits small { color: #9ed6ff; font: 600 6px/1.1 "JetBrains Mono", monospace; letter-spacing: .07em; }
+/* Three-department leadership hierarchy: clean, well-aligned, zero overlap, responsive */
+.leadership-department-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 34px;
+  align-items: stretch;
+}
+.leadership-department {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding: 18px;
+  border: 1px solid rgba(207,224,255,.2);
+  background: linear-gradient(145deg, rgba(8,23,57,.88), rgba(4,10,31,.94));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 16px 32px rgba(0,0,0,.2);
+}
+.leadership-department.is-confirmed-department {
+  border-color: rgba(216,179,106,.72);
+  background: linear-gradient(145deg, rgba(20,28,58,.9), rgba(8,16,42,.96));
+}
+.leadership-department-header {
+  display: grid;
+  gap: 6px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(207,224,255,.16);
+}
+.leadership-department-title {
+  color: #fff4cf;
+  font: 600 clamp(22px, 2.2vw, 30px)/.88 "Teko", sans-serif;
+  letter-spacing: .05em;
+}
+.leadership-department-tier {
+  color: #7fceff;
+  font: 600 7.5px/1 "JetBrains Mono", monospace;
+  letter-spacing: .12em;
+}
+.leadership-role-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding-top: 13px;
+  gap: 0;
+  flex: 1;
+}
+.leadership-connector-line {
+  align-self: center;
+  display: block;
+  width: 1px;
+  height: 14px;
+  margin: 1px 0;
+  background: linear-gradient(#d8b36a, #2199ff);
+  box-shadow: 0 0 8px rgba(33,153,255,.5);
+}
+.leadership-role-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid rgba(98,185,255,.25);
+  background: rgba(2,10,31,.6);
+}
+.leadership-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.role-tag {
+  color: #79c8ff;
+  font: 700 7.5px/1 "JetBrains Mono", monospace;
+  letter-spacing: .1em;
+}
+.leadership-desk-call-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border: 1px solid rgba(216,179,106,.6);
+  color: #07111d;
+  background: linear-gradient(135deg, #fff0bc, #d8b36a);
+  font: 700 7.5px/1 "JetBrains Mono", monospace;
+  letter-spacing: .05em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.leadership-role-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 68px;
+  gap: 12px;
+  align-items: center;
+}
+.leadership-role-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.leadership-role-copy h3 {
+  margin: 0;
+  color: #fff;
+  font: 600 clamp(20px, 1.8vw, 24px)/.92 "Teko", sans-serif;
+  letter-spacing: .04em;
+  overflow-wrap: anywhere;
+}
+.leadership-role-copy p {
+  margin: 0;
+  color: #b8c8e7;
+  font: 600 7.5px/1.25 "JetBrains Mono", monospace;
+  letter-spacing: .06em;
+}
+.leadership-role-actions {
+  margin-top: 5px;
+}
+.leadership-call-link, .leadership-desk-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 25px;
+  padding: 0 8px;
+  border: 1px solid rgba(216,179,106,.7);
+  color: #0a142a;
+  background: linear-gradient(135deg, #fff0bc, #d8b36a);
+  font: 700 7.5px/1 "JetBrains Mono", monospace;
+  letter-spacing: .05em;
+  text-decoration: none;
+  cursor: pointer;
+  width: fit-content;
+}
+.leadership-desk-btn {
+  color: #9ed6ff;
+  border-color: rgba(98,185,255,.42);
+  background: rgba(22,141,255,.08);
+}
+.leadership-avatar-frame {
+  width: 68px;
+  height: 78px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 1px solid rgba(216,179,106,.65);
+  background: linear-gradient(145deg, rgba(33,153,255,.16), rgba(7,13,36,.92));
+  box-shadow: 0 4px 14px rgba(0,0,0,.3);
+}
+.leadership-avatar-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 15%;
+  display: block;
+}
+.leadership-role-placeholder {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: #7096c4;
+}
+.leadership-student-section {
+  padding-bottom: 12px;
+}
+.leadership-students-container.is-dual-student-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 2px;
+}
+.leadership-students-container.is-single-student-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-top: 2px;
+}
+.leadership-student-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid rgba(98,185,255,.2);
+  background: rgba(5,14,40,.68);
+  min-width: 0;
+}
+.is-single-student-layout .leadership-student-tile {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 68px;
+  gap: 12px;
+  align-items: center;
+}
+.leadership-student-avatar {
+  position: relative;
+  width: 100%;
+  height: 92px;
+  overflow: hidden;
+  border: 1px solid rgba(98,185,255,.45);
+  background: #020718;
+}
+.is-single-student-layout .leadership-student-avatar {
+  grid-column: 2;
+  width: 68px;
+  height: 78px;
+}
+.leadership-student-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 15%;
+  display: block;
+}
+.leadership-student-year-badge {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 3px 2px;
+  background: rgba(4,10,30,.92);
+  color: #ffdc86;
+  font: 700 7px/1 "JetBrains Mono", monospace;
+  letter-spacing: .06em;
+  text-align: center;
+  border-top: 1px solid rgba(216,179,106,.35);
+  backdrop-filter: blur(4px);
+}
+.is-single-student-layout .leadership-student-info {
+  grid-column: 1;
+}
+.leadership-student-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.leadership-student-info h4 {
+  margin: 0;
+  color: #fff4cf;
+  font: 600 clamp(18px, 1.6vw, 22px)/.92 "Teko", sans-serif;
+  letter-spacing: .03em;
+  overflow-wrap: anywhere;
+}
+.leadership-student-info p {
+  margin: 0;
+  color: #9ed6ff;
+  font: 600 7px/1.2 "JetBrains Mono", monospace;
+  letter-spacing: .04em;
+}
+.student-call-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 22px;
+  margin-top: 4px;
+  padding: 0 7px;
+  border: 1px solid rgba(216,179,106,.6);
+  color: #07111d;
+  background: linear-gradient(135deg, #fff0bc, #d8b36a);
+  font: 700 7px/1 "JetBrains Mono", monospace;
+  letter-spacing: .04em;
+  text-decoration: none;
+  width: fit-content;
+}
+.leadership-profile-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 5px;
+  flex-wrap: wrap;
+}
+.leadership-profile-links button {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid rgba(98,185,255,.35);
+  color: #9ed6ff;
+  background: rgba(22,141,255,.08);
+  cursor: pointer;
+  transition: all .16s ease;
+}
+.leadership-profile-links button:hover, .leadership-profile-links button:focus-visible {
+  color: #ffe6a6;
+  border-color: rgba(216,179,106,.82);
+  background: rgba(216,179,106,.15);
+  outline: none;
+  transform: translateY(-1px);
+}
 .participant-help { position: fixed; z-index: 60; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); display: grid; justify-items: end; gap: 10px; }
 .participant-help-panel { width: min(420px, calc(100vw - 32px)); overflow: hidden; border: 1px solid rgba(216,179,106,.78); background: linear-gradient(145deg, rgba(7,21,56,.98), rgba(3,8,27,.99)); box-shadow: 0 22px 54px rgba(0,0,0,.46), 0 0 32px rgba(33,153,255,.17); }
 .participant-help-panel > header { display: flex; align-items: start; justify-content: space-between; gap: 16px; padding: 15px 17px 11px; border-bottom: 1px solid rgba(207,224,255,.16); }
@@ -458,5 +716,19 @@ button { font-family: inherit; }
 .participant-help-trigger { display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 15px; border: 1px solid rgba(216,179,106,.86); color: #061125; background: linear-gradient(135deg, #fff1bd, #d8b36a 60%, #a8772d); box-shadow: 5px 5px 0 #2199ff, 0 0 26px rgba(216,179,106,.34); font: 700 9px/1 "JetBrains Mono", monospace; letter-spacing: .1em; cursor: pointer; transition: transform .18s cubic-bezier(.23,1,.32,1), box-shadow .18s ease; }
 .participant-help-trigger:hover { transform: translateY(-3px); box-shadow: 7px 7px 0 #2199ff, 0 0 32px rgba(216,179,106,.48); }
 .participant-help-trigger:active { transform: scale(.97); }
-@media (max-width: 900px) { .leadership-department-grid { grid-template-columns: 1fr; max-width: 640px; }.leadership-department { padding: 20px; } }
-@media (max-width: 600px) { .leadership-department { padding: 14px; }.leadership-role-card { grid-template-columns: minmax(0, 1fr) 56px; padding: 10px; }.leadership-role-card > img, .leadership-role-placeholder { width: 56px; height: 66px; }.leadership-student-card { grid-template-columns: 1fr; }.leadership-student-card > .leadership-role-copy { grid-column: 1; }.leadership-student-portraits { grid-template-columns: repeat(2, minmax(0, 1fr)); }.participant-help { right: 12px; bottom: 12px; }.participant-help-panel { width: min(100vw - 24px, 420px); }.participant-help-trigger { min-height: 45px; } }
+@media (max-width: 1040px) {
+  .leadership-department-grid { grid-template-columns: 1fr; max-width: 600px; margin-left: auto; margin-right: auto; }
+  .leadership-department { padding: 20px; }
+}
+@media (max-width: 600px) {
+  .leadership-department { padding: 14px; }
+  .leadership-role-card { padding: 10px; }
+  .leadership-role-body { grid-template-columns: minmax(0, 1fr) 60px; }
+  .leadership-avatar-frame { width: 60px; height: 70px; }
+  .is-single-student-layout .leadership-student-tile { grid-template-columns: minmax(0, 1fr) 60px; }
+  .is-single-student-layout .leadership-student-avatar { width: 60px; height: 70px; }
+  .leadership-student-avatar { height: 80px; }
+  .participant-help { right: 12px; bottom: 12px; }
+  .participant-help-panel { width: min(100vw - 24px, 420px); }
+  .participant-help-trigger { min-height: 45px; }
+}

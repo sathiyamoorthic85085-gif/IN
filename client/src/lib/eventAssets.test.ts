@@ -14,6 +14,8 @@ describe("event media catalogue", () => {
     expect(offlineEventMediaAssets).toContain(eventAssets.leadership.roboticsFacultyCoordinator);
     expect(offlineEventMediaAssets).toContain(eventAssets.leadership.mechStudentCoordinator1);
     expect(offlineEventMediaAssets).toContain(eventAssets.leadership.mechStudentCoordinator2);
+    expect(offlineEventMediaAssets).toContain(eventAssets.leadership.samuelA);
+    expect(offlineEventMediaAssets).toContain(eventAssets.leadership.naveenV);
     expect(offlineEventMediaAssets).toContain(eventAssets.contacts.vinodhini);
     expect(offlineEventMediaAssets.every((asset) => asset.startsWith("/media/"))).toBe(true);
   });

@@ -28,6 +28,8 @@ export const eventAssets = {
     roboticsFacultyCoordinator: "/media/innohack26-robotics-faculty-coordinator.jpg",
     mechStudentCoordinator1: "/media/innohack26-mech-student-coordinator-1.jpg",
     mechStudentCoordinator2: "/media/innohack26-mech-student-coordinator-2.jpg",
+    samuelA: "/media/innohack26-mech-student-coordinator-1.jpg",
+    naveenV: "/media/innohack26-mech-student-coordinator-2.jpg",
   },
   contacts: {
     vinodhini: "/media/innohack26-vinodhini-c-eie-faculty-coordinator_913ccc76.png",
