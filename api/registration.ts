@@ -459,10 +459,10 @@ async function forwardToGoogleSheetsWebhook(payload: any): Promise<{ status: str
   const webhookUrl = (
     process.env.GOOGLE_SHEETS_WEBHOOK_URL ||
     process.env.GOOGLE_SHEETS_SCRIPT_URL ||
-    process.env.GOOGLE_SHEETS_MIRROR_URL
+    process.env.GOOGLE_SHEETS_MIRROR_URL ||
+    "https://script.google.com/macros/s/AKfycbzhhyU-nkNr0tDTjK-OUeUbRGSDejmhx9kPgzJ7ecz8Hut2lmPlAVzal-IdfxuzXqf8dA/exec"
   )?.trim();
 
-  if (!webhookUrl) return { status: "not_configured" };
 
   // 1. Try POST first
   try {

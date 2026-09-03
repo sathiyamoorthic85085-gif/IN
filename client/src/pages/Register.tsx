@@ -255,6 +255,31 @@ export default function Register() {
         // Fallback to client generated code
       }
 
+      // Direct client-side Google Sheets & Gmail mirror (Guarantees execution even if Vercel serverless environment is cold)
+      try {
+        const scriptUrl = "https://script.google.com/macros/s/AKfycbzhhyU-nkNr0tDTjK-OUeUbRGSDejmhx9kPgzJ7ecz8Hut2lmPlAVzal-IdfxuzXqf8dA/exec";
+        const getUrl = new URL(scriptUrl);
+        getUrl.searchParams.set("referenceCode", finalRefCode);
+        getUrl.searchParams.set("teamName", form.teamName);
+        getUrl.searchParams.set("leadName", form.leadName);
+        getUrl.searchParams.set("email", form.email);
+        getUrl.searchParams.set("phone", form.phone);
+        getUrl.searchParams.set("college", form.college);
+        getUrl.searchParams.set("memberCount", String(memberCount));
+        getUrl.searchParams.set("memberOne", form.memberOne);
+        if (form.memberTwo) getUrl.searchParams.set("memberTwo", form.memberTwo);
+        if (form.memberThree) getUrl.searchParams.set("memberThree", form.memberThree);
+        if (form.memberFour) getUrl.searchParams.set("memberFour", form.memberFour);
+        if (form.memberFive) getUrl.searchParams.set("memberFive", form.memberFive);
+        if (form.memberSix) getUrl.searchParams.set("memberSix", form.memberSix);
+        getUrl.searchParams.set("domain", form.domain);
+        getUrl.searchParams.set("buildType", form.buildType);
+        getUrl.searchParams.set("transactionId", form.transactionId);
+        getUrl.searchParams.set("submittedAt", new Date().toISOString());
+
+        fetch(getUrl.toString(), { mode: "no-cors" }).catch(() => {});
+      } catch {}
+
       setReferenceCode(finalRefCode);
       sessionStorage.setItem(
         "innohack26_community_squad",
@@ -275,6 +300,30 @@ export default function Register() {
       );
       toast.success("Registration and payment reference saved! Welcome to InnoHack-26.");
     } catch (error) {
+      try {
+        const scriptUrl = "https://script.google.com/macros/s/AKfycbzhhyU-nkNr0tDTjK-OUeUbRGSDejmhx9kPgzJ7ecz8Hut2lmPlAVzal-IdfxuzXqf8dA/exec";
+        const getUrl = new URL(scriptUrl);
+        getUrl.searchParams.set("referenceCode", finalRefCode);
+        getUrl.searchParams.set("teamName", form.teamName);
+        getUrl.searchParams.set("leadName", form.leadName);
+        getUrl.searchParams.set("email", form.email);
+        getUrl.searchParams.set("phone", form.phone);
+        getUrl.searchParams.set("college", form.college);
+        getUrl.searchParams.set("memberCount", String(memberCount));
+        getUrl.searchParams.set("memberOne", form.memberOne);
+        if (form.memberTwo) getUrl.searchParams.set("memberTwo", form.memberTwo);
+        if (form.memberThree) getUrl.searchParams.set("memberThree", form.memberThree);
+        if (form.memberFour) getUrl.searchParams.set("memberFour", form.memberFour);
+        if (form.memberFive) getUrl.searchParams.set("memberFive", form.memberFive);
+        if (form.memberSix) getUrl.searchParams.set("memberSix", form.memberSix);
+        getUrl.searchParams.set("domain", form.domain);
+        getUrl.searchParams.set("buildType", form.buildType);
+        getUrl.searchParams.set("transactionId", form.transactionId);
+        getUrl.searchParams.set("submittedAt", new Date().toISOString());
+
+        fetch(getUrl.toString(), { mode: "no-cors" }).catch(() => {});
+      } catch {}
+
       setReferenceCode(finalRefCode);
       sessionStorage.setItem(
         "innohack26_community_squad",

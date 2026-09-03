@@ -34,16 +34,19 @@ function webhookConfig() {
   const url = (
     process.env.GOOGLE_SHEETS_WEBHOOK_URL ||
     process.env.GOOGLE_SHEETS_SCRIPT_URL ||
-    process.env.GOOGLE_SHEETS_MIRROR_URL
+    process.env.GOOGLE_SHEETS_MIRROR_URL ||
+    "https://script.google.com/macros/s/AKfycbzhhyU-nkNr0tDTjK-OUeUbRGSDejmhx9kPgzJ7ecz8Hut2lmPlAVzal-IdfxuzXqf8dA/exec"
   )?.trim();
   const token = process.env.GOOGLE_SHEETS_MIRROR_TOKEN?.trim();
   const spreadsheetId = (
     process.env.GOOGLE_SHEETS_SPREADSHEET_ID ||
-    process.env.GOOGLE_SHEET_ID
+    process.env.GOOGLE_SHEET_ID ||
+    "1J3nZj977Gm2AvfMmg3hJDm6rAMdJFo-16lyxnTlaKZo"
   )?.trim();
 
   return url ? { url, token, spreadsheetId } : null;
 }
+
 
 export function isGoogleSheetsBackendConfigured(): boolean {
   return Boolean(webhookConfig()) || isGoogleServiceAccountConfigured();
