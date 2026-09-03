@@ -421,7 +421,7 @@ export default function Register() {
               }}
               onClick={() =>
                 setLocation(
-                  `/community?email=${encodeURIComponent(form.email)}&ref=${encodeURIComponent(referenceCode)}`
+                  `/community?email=${encodeURIComponent(form.email)}&ref=${encodeURIComponent(referenceCode!)}`
                 )
               }
             >

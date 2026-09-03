@@ -10,7 +10,7 @@ import {
   MealSlotId, ScanAuditLogItem
 } from "./types";
 
-const DEFAULT_API_BASE = import.meta.env.VITE_API_BASE || "https://innohack26.vercel.app";
+const GAS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzhhyU-nkNr0tDTjK-OUeUbRGSDejmhx9kPgzJ7ecz8Hut2lmPlAVzal-IdfxuzXqf8dA/exec";
 
 function playBeep(success: boolean) {
   try {
@@ -40,7 +40,6 @@ function playBeep(success: boolean) {
 export function App() {
   const [organizerEmail, setOrganizerEmail] = useState<string>(() => localStorage.getItem("innohack26_scanner_organizer_email") || "");
   const [emailInput, setEmailInput] = useState("");
-  const [apiBase, setApiBase] = useState<string>(() => localStorage.getItem("innohack26_scanner_api_base") || DEFAULT_API_BASE);
   const [activeMealId, setActiveMealId] = useState<MealSlotId>("attendance");
   const [cameraActive, setCameraActive] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -56,7 +55,7 @@ export function App() {
 
   const fetchMetrics = async () => {
     try {
-      const res = await fetch(`${apiBase}/api/food-token?action=headcount`);
+      const res = await fetch(`${GAS_WEBHOOK_URL}?action=headcount`);
       if (res.ok) {
         const data = await res.json();
         setMetrics(data);
@@ -70,7 +69,7 @@ export function App() {
       const interval = setInterval(fetchMetrics, 10000);
       return () => clearInterval(interval);
     }
-  }, [organizerEmail, apiBase]);
+  }, [organizerEmail]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,7 +109,8 @@ export function App() {
     setStatusMessage(null);
 
     try {
-      const res = await fetch(`${apiBase}/api/food-token?token=${encodeURIComponent(tokenId)}`);
+      // Bypass Vercel API and hit Google Apps Script directly
+      const res = await fetch(`${GAS_WEBHOOK_URL}?action=lookup&token=${encodeURIComponent(tokenId)}`);
       const data = await res.json();
 
       if (!res.ok || data.error) {
@@ -143,25 +143,17 @@ export function App() {
 
   const executeRedemption = async (tokenId: string, mealId: MealSlotId, memberName: string, forceAction?: "redeem" | "undo") => {
     try {
-      const res = await fetch(`${apiBase}/api/food-token`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tokenId,
-          mealId,
-          scannedBy: organizerEmail,
-          forceAction,
-        }),
-      });
-
+      // POST to Google Apps Script via GET request to avoid CORS preflight issues
+      const claimed = forceAction === "undo" ? "false" : "true";
+      const res = await fetch(`${GAS_WEBHOOK_URL}?action=redeem&token=${encodeURIComponent(tokenId)}&meal=${encodeURIComponent(mealId)}&claimed=${claimed}&by=${encodeURIComponent(organizerEmail)}`);
       const data = await res.json();
+
       if (!res.ok || data.error) {
         setStatusMessage({ text: data.error || "Failed to update", type: "error" });
         if (soundEnabled) playBeep(false);
         return;
       }
 
-      // Update local team state for the specific member
       setCurrentTeam(prev => {
         if (!prev) return prev;
         return prev.map(member => {
@@ -211,7 +203,6 @@ export function App() {
   };
 
   const exportCsv = () => {
-    // Basic CSV export
     if (!metrics) return;
     const rows = [
       ["Meal Slot ID", "Served", "Eligible"],
