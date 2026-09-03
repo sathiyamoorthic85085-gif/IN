@@ -83,18 +83,42 @@ const HEADERS = [
 ];
 
 function doGet(e) {
-  // If registration data is sent via GET query
-  if (e && e.parameter && (e.parameter.registration || e.parameter.referenceCode)) {
-    return processRegistration(e.parameter);
+  var param = (e && e.parameter) ? e.parameter : {};
+  var action = param.action || "";
+
+  // 1. Food Scanner direct API: lookup token
+  if (action === "lookup" || action === "lookupToken") {
+    return handleTokenLookup(param.token || param.tokenId || "");
+  }
+
+  // 2. Food Scanner direct API: redeem meal
+  if (action === "redeem" || action === "redeemMeal") {
+    return handleMealRedeem(
+      param.token || param.tokenId || "",
+      param.meal || param.mealSlotId || "",
+      param.claimed !== "false",
+      param.by || param.organizerEmail || "Organizer"
+    );
+  }
+
+  // 3. Food Scanner direct API: live headcount metrics
+  if (action === "headcount" || action === "metrics") {
+    return handleHeadCount();
+  }
+
+  // 4. Registration data via GET query
+  if (param.registration || param.referenceCode) {
+    return processRegistration(param);
   }
 
   return ContentService.createTextOutput(JSON.stringify({
     status: "ok",
-    service: "InnoHack-26 Registration & Gmail Confirmation Backend",
-    version: "3.5-bulletproof-production",
+    service: "InnoHack-26 Registration & Live Food Token Scanner API",
+    version: "4.0-scanner-and-sheets",
     timestamp: new Date().toISOString()
   })).setMimeType(ContentService.MimeType.JSON);
 }
+
 
 function doPost(e) {
   try {
@@ -590,3 +614,189 @@ function testRun() {
 
   Logger.log("🎉 ALL PERMISSIONS VERIFIED! You can now click Deploy -> Manage deployments -> Edit -> New Version -> Deploy.");
 }
+
+/**
+ * Direct Food Scanner API: Lookup participant token & 6 meal claim statuses
+ */
+function handleTokenLookup(token) {
+  try {
+    var cleanToken = String(token || "").trim();
+    if (!cleanToken) {
+      return ContentService.createTextOutput(JSON.stringify({
+        success: false,
+        error: "Missing token parameter"
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    var spreadsheet = resolveSpreadsheet();
+    if (!spreadsheet) throw new Error("Google Sheet not accessible");
+
+    var sheet = getOrCreateFoodTokensSheet(spreadsheet);
+    var data = sheet.getDataRange().getValues();
+
+    for (var i = 1; i < data.length; i++) {
+      var row = data[i];
+      var rowToken = String(row[1] || "").trim();
+      if (rowToken.toLowerCase() === cleanToken.toLowerCase() || rowToken.replace(/-/g, "").toLowerCase() === cleanToken.replace(/-/g, "").toLowerCase()) {
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          pass: {
+            tokenId: rowToken,
+            referenceCode: String(row[2] || ""),
+            memberName: String(row[3] || ""),
+            role: String(row[4] || "Squad Member"),
+            teamName: String(row[5] || ""),
+            college: String(row[6] || ""),
+            phone: String(row[7] || ""),
+            email: String(row[8] || ""),
+            meals: {
+              sep24_mrng_snacks: { claimed: isClaimedVal(row[9]), claimedAt: String(row[9] || "") },
+              sep24_night_dinner: { claimed: isClaimedVal(row[10]), claimedAt: String(row[10] || "") },
+              sep24_night_snacks: { claimed: isClaimedVal(row[11]), claimedAt: String(row[11] || "") },
+              sep25_mrng_bfast: { claimed: isClaimedVal(row[12]), claimedAt: String(row[12] || "") },
+              sep25_mrng_snacks: { claimed: isClaimedVal(row[13]), claimedAt: String(row[13] || "") },
+              sep25_aft_snacks: { claimed: isClaimedVal(row[14]), claimedAt: String(row[14] || "") }
+            }
+          }
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: "Token not found in Google Sheet: " + cleanToken
+    })).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: err.message || err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**
+ * Direct Food Scanner API: Redeem or toggle meal slot
+ */
+function handleMealRedeem(token, mealSlotId, claimed, organizerEmail) {
+  try {
+    var cleanToken = String(token || "").trim();
+    if (!cleanToken) throw new Error("Missing token");
+
+    var spreadsheet = resolveSpreadsheet();
+    if (!spreadsheet) throw new Error("Google Sheet not accessible");
+
+    var sheet = getOrCreateFoodTokensSheet(spreadsheet);
+    var data = sheet.getDataRange().getValues();
+
+    var colMap = {
+      sep24_mrng_snacks: 10,
+      sep24_night_dinner: 11,
+      sep24_night_snacks: 12,
+      sep25_mrng_bfast: 13,
+      sep25_mrng_snacks: 14,
+      sep25_aft_snacks: 15
+    };
+
+    var colIdx = colMap[mealSlotId] || 11; // default dinner
+
+    for (var i = 1; i < data.length; i++) {
+      var rowToken = String(data[i][1] || "").trim();
+      if (rowToken.toLowerCase() === cleanToken.toLowerCase() || rowToken.replace(/-/g, "").toLowerCase() === cleanToken.replace(/-/g, "").toLowerCase()) {
+        var rowIndex = i + 1; // 1-indexed
+        var nowStr = Utilities.formatDate(new Date(), "Asia/Kolkata", "dd/MM HH:mm");
+        var cellVal = claimed ? ("Claimed (" + nowStr + ")") : "Unclaimed";
+
+        sheet.getRange(rowIndex, colIdx).setValue(cellVal);
+
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          tokenId: rowToken,
+          mealSlotId: mealSlotId,
+          claimed: claimed,
+          message: "Meal status updated in Google Sheet row #" + rowIndex
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+
+    throw new Error("Token not found: " + cleanToken);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: err.message || err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+/**
+ * Direct Food Scanner API: Live headcount stats
+ */
+function handleHeadCount() {
+  try {
+    var spreadsheet = resolveSpreadsheet();
+    if (!spreadsheet) throw new Error("Google Sheet not accessible");
+
+    var sheet = getOrCreateFoodTokensSheet(spreadsheet);
+    var data = sheet.getDataRange().getValues();
+
+    var totalIssued = Math.max(0, data.length - 1);
+    var mealStats = {
+      sep24_mrng_snacks: { claimed: 0, pending: 0 },
+      sep24_night_dinner: { claimed: 0, pending: 0 },
+      sep24_night_snacks: { claimed: 0, pending: 0 },
+      sep25_mrng_bfast: { claimed: 0, pending: 0 },
+      sep25_mrng_snacks: { claimed: 0, pending: 0 },
+      sep25_aft_snacks: { claimed: 0, pending: 0 }
+    };
+
+    for (var i = 1; i < data.length; i++) {
+      var r = data[i];
+      if (isClaimedVal(r[9])) mealStats.sep24_mrng_snacks.claimed++; else mealStats.sep24_mrng_snacks.pending++;
+      if (isClaimedVal(r[10])) mealStats.sep24_night_dinner.claimed++; else mealStats.sep24_night_dinner.pending++;
+      if (isClaimedVal(r[11])) mealStats.sep24_night_snacks.claimed++; else mealStats.sep24_night_snacks.pending++;
+      if (isClaimedVal(r[12])) mealStats.sep25_mrng_bfast.claimed++; else mealStats.sep25_mrng_bfast.pending++;
+      if (isClaimedVal(r[13])) mealStats.sep25_mrng_snacks.claimed++; else mealStats.sep25_mrng_snacks.pending++;
+      if (isClaimedVal(r[14])) mealStats.sep25_aft_snacks.claimed++; else mealStats.sep25_aft_snacks.pending++;
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      totalPassesIssued: totalIssued,
+      mealStats: mealStats,
+      timestamp: new Date().toISOString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: err.message || err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function isClaimedVal(val) {
+  if (!val) return false;
+  var s = String(val).toLowerCase();
+  return s.indexOf("claim") > -1 && s.indexOf("unclaim") === -1;
+}
+
+function resolveSpreadsheet() {
+  var spreadsheet = null;
+  try {
+    spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  } catch (e) {}
+
+  if (!spreadsheet && DEFAULT_SPREADSHEET_ID) {
+    try {
+      spreadsheet = SpreadsheetApp.openById(DEFAULT_SPREADSHEET_ID);
+    } catch (e) {}
+  }
+
+  if (!spreadsheet) {
+    try {
+      var files = DriveApp.getFilesByName("InnoHack-26 Registrations");
+      if (files.hasNext()) spreadsheet = SpreadsheetApp.open(files.next());
+    } catch (e) {}
+  }
+  return spreadsheet;
+}
+
