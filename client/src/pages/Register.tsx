@@ -255,7 +255,7 @@ export default function Register() {
         // Fallback to client generated code
       }
 
-      // Direct client-side Google Sheets & Gmail mirror (Guarantees execution even if Vercel serverless environment is cold)
+      // Direct client-side Google Sheets & Gmail mirror (Guarantees execution directly to Google Apps Script)
       try {
         const scriptUrl = "https://script.google.com/macros/s/AKfycbzhhyU-nkNr0tDTjK-OUeUbRGSDejmhx9kPgzJ7ecz8Hut2lmPlAVzal-IdfxuzXqf8dA/exec";
         const getUrl = new URL(scriptUrl);
@@ -277,8 +277,9 @@ export default function Register() {
         getUrl.searchParams.set("transactionId", form.transactionId);
         getUrl.searchParams.set("submittedAt", new Date().toISOString());
 
-        fetch(getUrl.toString(), { mode: "no-cors" }).catch(() => {});
+        await fetch(getUrl.toString(), { mode: "no-cors" }).catch(() => {});
       } catch {}
+
 
       setReferenceCode(finalRefCode);
       sessionStorage.setItem(
@@ -321,8 +322,9 @@ export default function Register() {
         getUrl.searchParams.set("transactionId", form.transactionId);
         getUrl.searchParams.set("submittedAt", new Date().toISOString());
 
-        fetch(getUrl.toString(), { mode: "no-cors" }).catch(() => {});
+        await fetch(getUrl.toString(), { mode: "no-cors" }).catch(() => {});
       } catch {}
+
 
       setReferenceCode(finalRefCode);
       sessionStorage.setItem(

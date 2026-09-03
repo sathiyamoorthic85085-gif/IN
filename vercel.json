@@ -1,24 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "version": 2,
   "framework": "vite",
   "buildCommand": "pnpm vercel-build",
   "outputDirectory": "dist/public",
-  "routes": [
-    {
-      "src": "/api/participant-help",
-      "dest": "/api/help"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+  "rewrites": [
+    { "source": "/api/participant-help", "destination": "/api/help" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
