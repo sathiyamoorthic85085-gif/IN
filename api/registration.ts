@@ -464,10 +464,11 @@ async function forwardToGoogleSheetsWebhook(payload: any): Promise<{ status: str
 
   if (!webhookUrl) return { status: "not_configured" };
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 25000);
-
+  // 1. Try POST first
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
+
     const res = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -478,26 +479,63 @@ async function forwardToGoogleSheetsWebhook(payload: any): Promise<{ status: str
       }),
       signal: controller.signal,
     });
+    clearTimeout(timeout);
 
-    if (!res.ok) {
-      console.warn("[GoogleSheets] Webhook returned status:", res.status);
-      return { status: "pending" };
+    if (res.ok) {
+      const text = await res.text();
+      try {
+        const json = JSON.parse(text);
+        if (json.success !== false) {
+          return { status: "synced", photoUrl: json.photoUrl };
+        }
+      } catch {
+        // Non-JSON ok response (Google Drive redirect) -> fall through to GET fallback
+      }
     }
+  } catch (postErr) {
+    console.warn("[GoogleSheets] POST attempt notice, falling back to GET query:", postErr instanceof Error ? postErr.message : postErr);
+  }
 
-    const text = await res.text();
-    try {
-      const json = JSON.parse(text);
-      return { status: "synced", photoUrl: json.photoUrl };
-    } catch {
+  // 2. Reliable GET fallback (bypasses Google Apps Script POST redirection)
+  try {
+    const getUrl = new URL(webhookUrl);
+    getUrl.searchParams.set("referenceCode", payload.referenceCode || "");
+    getUrl.searchParams.set("teamName", payload.teamName || "");
+    getUrl.searchParams.set("leadName", payload.leadName || "");
+    getUrl.searchParams.set("email", payload.email || "");
+    getUrl.searchParams.set("phone", payload.phone || "");
+    getUrl.searchParams.set("college", payload.college || "");
+    getUrl.searchParams.set("memberCount", String(payload.memberCount || 1));
+    getUrl.searchParams.set("memberOne", payload.memberOne || "");
+    if (payload.memberTwo) getUrl.searchParams.set("memberTwo", payload.memberTwo);
+    if (payload.memberThree) getUrl.searchParams.set("memberThree", payload.memberThree);
+    if (payload.memberFour) getUrl.searchParams.set("memberFour", payload.memberFour);
+    if (payload.memberFive) getUrl.searchParams.set("memberFive", payload.memberFive);
+    if (payload.memberSix) getUrl.searchParams.set("memberSix", payload.memberSix);
+    getUrl.searchParams.set("domain", payload.domain || "");
+    getUrl.searchParams.set("buildType", payload.buildType || "software");
+    getUrl.searchParams.set("transactionId", payload.transactionId || "");
+    if (payload.submittedAt) getUrl.searchParams.set("submittedAt", payload.submittedAt);
+    if (payload.photoUrl) getUrl.searchParams.set("photoUrl", payload.photoUrl);
+
+    const getRes = await fetch(getUrl.toString());
+    if (getRes.ok) {
+      const getText = await getRes.text();
+      try {
+        const json = JSON.parse(getText);
+        if (json.success !== false) {
+          return { status: "synced", photoUrl: json.photoUrl };
+        }
+      } catch {}
       return { status: "synced" };
     }
-  } catch (err) {
-    console.warn("[GoogleSheets] Sync warning:", err instanceof Error ? err.message : err);
-    return { status: "pending" };
-  } finally {
-    clearTimeout(timeout);
+  } catch (getErr) {
+    console.warn("[GoogleSheets] GET sync fallback notice:", getErr instanceof Error ? getErr.message : getErr);
   }
+
+  return { status: "pending" };
 }
+
 
 export default async function handler(req: any, res: any) {
   try {

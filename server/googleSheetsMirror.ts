@@ -54,15 +54,14 @@ export async function mirrorRegistrationToGoogleSheets(
 ): Promise<{ status: GoogleSheetsMirrorStatus; photoUrl?: string }> {
   const config = webhookConfig();
 
-  // 1. Prioritize Google Apps Script Webhook (essential for storing images in Google Drive under user's quota)
+  // 1. Google Apps Script Webhook
   if (config) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 25000);
-
+    // 1a. Try POST
     try {
-      const headers: Record<string, string> = {
-        "content-type": "application/json",
-      };
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+
+      const headers: Record<string, string> = { "content-type": "application/json" };
       if (config.token) {
         headers["x-innohack-backup-token"] = config.token;
       }
@@ -79,34 +78,63 @@ export async function mirrorRegistrationToGoogleSheets(
         body: JSON.stringify(payload),
         signal: controller.signal,
       });
+      clearTimeout(timeout);
 
       if (response.ok) {
         const responseText = await response.text();
         let photoUrl: string | undefined;
         try {
           const json = JSON.parse(responseText);
-          if (json.photoUrl) {
-            photoUrl = json.photoUrl;
-          }
+          if (json.photoUrl) photoUrl = json.photoUrl;
           if (json.success !== false) {
             return { status: "synced", photoUrl };
           }
         } catch {
-          // Non-JSON ok response
-          return { status: "synced", photoUrl };
+          // Google Drive redirect -> continue to GET fallback
         }
-      } else {
-        console.warn(`[GoogleSheetsBackend] HTTP ${response.status} from Google Apps Script webhook`);
       }
-    } catch (error) {
-      console.warn(
-        "[GoogleSheetsBackend] Google Apps Script webhook error, trying direct fallback:",
-        error instanceof Error ? error.message : "unknown"
-      );
-    } finally {
-      clearTimeout(timeout);
+    } catch (postErr) {
+      console.warn("[GoogleSheetsBackend] POST attempt warning, falling back to GET:", postErr instanceof Error ? postErr.message : postErr);
+    }
+
+    // 1b. Reliable GET fallback
+    try {
+      const getUrl = new URL(config.url);
+      getUrl.searchParams.set("referenceCode", registration.referenceCode);
+      getUrl.searchParams.set("teamName", registration.teamName);
+      getUrl.searchParams.set("leadName", registration.leadName);
+      getUrl.searchParams.set("email", registration.email);
+      getUrl.searchParams.set("phone", registration.phone);
+      getUrl.searchParams.set("college", registration.college);
+      getUrl.searchParams.set("memberCount", String(registration.memberCount));
+      getUrl.searchParams.set("memberOne", registration.memberOne);
+      if (registration.memberTwo) getUrl.searchParams.set("memberTwo", registration.memberTwo);
+      if (registration.memberThree) getUrl.searchParams.set("memberThree", registration.memberThree);
+      if (registration.memberFour) getUrl.searchParams.set("memberFour", registration.memberFour);
+      if (registration.memberFive) getUrl.searchParams.set("memberFive", registration.memberFive);
+      if (registration.memberSix) getUrl.searchParams.set("memberSix", registration.memberSix);
+      getUrl.searchParams.set("domain", registration.domain);
+      getUrl.searchParams.set("buildType", registration.buildType);
+      getUrl.searchParams.set("transactionId", registration.transactionId);
+      if (registration.submittedAt) getUrl.searchParams.set("submittedAt", registration.submittedAt);
+      if (registration.photoUrl) getUrl.searchParams.set("photoUrl", registration.photoUrl);
+
+      const getRes = await fetch(getUrl.toString());
+      if (getRes.ok) {
+        const getText = await getRes.text();
+        try {
+          const json = JSON.parse(getText);
+          if (json.success !== false) {
+            return { status: "synced", photoUrl: json.photoUrl };
+          }
+        } catch {}
+        return { status: "synced" };
+      }
+    } catch (getErr) {
+      console.warn("[GoogleSheetsBackend] GET sync fallback notice:", getErr instanceof Error ? getErr.message : getErr);
     }
   }
+
 
   // 2. Direct Google Service Account (fallback or when webhook is not configured)
   if (isGoogleServiceAccountConfigured()) {
