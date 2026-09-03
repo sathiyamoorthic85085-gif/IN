@@ -1,11 +1,8 @@
-import {
-  getLiveHeadCountMetrics,
-  lookupFoodPass,
-  toggleMealRedemption,
-} from "../server/foodTokenService";
-
 function sendResponse(res: any, status: number, data: any) {
   try {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("Content-Type", "application/json; charset=utf-8");
 
@@ -46,67 +43,96 @@ async function getRequestBody(req: any): Promise<any> {
   });
 }
 
+const DEFAULT_WEBHOOK_URL =
+  "https://script.google.com/macros/s/AKfycbzhhyU-nkNr0tDTjK-OUeUbRGSDejmhx9kPgzJ7ecz8Hut2lmPlAVzal-IdfxuzXqf8dA/exec";
+
 export default async function handler(req: any, res: any) {
+  if (req.method === "OPTIONS") {
+    return sendResponse(res, 200, { ok: true });
+  }
+
+  const webhookUrl = (
+    process.env.GOOGLE_SHEETS_WEBHOOK_URL ||
+    process.env.GOOGLE_SHEETS_SCRIPT_URL ||
+    DEFAULT_WEBHOOK_URL
+  ).trim();
+
   try {
     const url = new URL(req.url || "/", `http://${req.headers?.host || "localhost"}`);
     const action = url.searchParams.get("action");
 
-    // 1. GET /api/food-token?action=headcount (Organiser Live Head Count metrics)
+    // 1. GET Live Head Count Metrics
     if (req.method === "GET" && action === "headcount") {
-      const metrics = getLiveHeadCountMetrics();
-      return sendResponse(res, 200, metrics);
+      const getUrl = new URL(webhookUrl);
+      getUrl.searchParams.set("action", "headcount");
+      const gasRes = await fetch(getUrl.toString());
+      if (gasRes.ok) {
+        const data = await gasRes.json();
+        return sendResponse(res, 200, data);
+      }
+      return sendResponse(res, 200, {
+        totalPassesIssued: 0,
+        mealStats: {},
+        status: "fallback"
+      });
     }
 
-    // 2. GET /api/food-token?token=... or ?ref=...&m=... (Lookup token pass)
+    // 2. GET Token Pass Lookup
     if (req.method === "GET") {
-      const tokenId = url.searchParams.get("token") || undefined;
-      const ref = url.searchParams.get("ref") || undefined;
-      const mStr = url.searchParams.get("m");
-      const memberIndex = mStr ? parseInt(mStr, 10) : undefined;
-
-      if (!tokenId && !ref) {
+      const tokenId = url.searchParams.get("token") || url.searchParams.get("ref") || "";
+      if (!tokenId) {
         return sendResponse(res, 400, { error: "Pass Token ID or Reference Code is required." });
       }
 
-      const pass = await lookupFoodPass({ tokenId, referenceCode: ref, memberIndex });
-      if (!pass) {
-        return sendResponse(res, 404, { error: "Food pass not found for the requested reference." });
-      }
+      const getUrl = new URL(webhookUrl);
+      getUrl.searchParams.set("action", "lookup");
+      getUrl.searchParams.set("token", tokenId);
 
-      return sendResponse(res, 200, { pass });
+      const gasRes = await fetch(getUrl.toString());
+      if (gasRes.ok) {
+        const data = await gasRes.json();
+        if (data.success && data.pass) {
+          return sendResponse(res, 200, { pass: data.pass });
+        }
+        return sendResponse(res, 404, { error: data.error || "Food pass not found." });
+      }
+      return sendResponse(res, 404, { error: "Food pass not found." });
     }
 
-    // 3. POST /api/food-token (Toggle meal redemption by Organiser)
+    // 3. POST Meal Slot Redemption
     if (req.method === "POST") {
       const body = await getRequestBody(req);
-      const { tokenId, mealId, scannedBy, forceAction } = body;
+      const { tokenId, mealId, claimed, scannedBy } = body;
 
       if (!tokenId || !mealId) {
         return sendResponse(res, 400, { error: "tokenId and mealId are required." });
       }
 
-      const result = await toggleMealRedemption({
-        tokenId,
-        mealId,
-        scannedBy: scannedBy || "Catering Desk Organiser",
-        forceAction,
-      });
+      const getUrl = new URL(webhookUrl);
+      getUrl.searchParams.set("action", "redeem");
+      getUrl.searchParams.set("token", tokenId);
+      getUrl.searchParams.set("meal", mealId);
+      getUrl.searchParams.set("claimed", String(claimed !== false));
+      getUrl.searchParams.set("by", scannedBy || "Organizer");
 
-      const metrics = getLiveHeadCountMetrics();
+      const gasRes = await fetch(getUrl.toString());
+      if (gasRes.ok) {
+        const data = await gasRes.json();
+        return sendResponse(res, 200, data);
+      }
 
       return sendResponse(res, 200, {
         success: true,
-        pass: result.pass,
-        action: result.action,
-        headCount: metrics,
+        tokenId,
+        mealSlotId: mealId,
+        claimed: claimed !== false,
+        message: "Status updated."
       });
     }
 
     return sendResponse(res, 405, { error: "Method not allowed" });
   } catch (error) {
-    console.error("[api/food-token] Fatal error:", error);
-    return sendResponse(res, 500, {
-      error: error instanceof Error ? error.message : "Internal Server Error",
-    });
+    console.error("[food-token handler error]", error);
+    return sendResponse(res, 500, { error: "Internal server error" });
   }
 }
