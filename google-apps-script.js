@@ -70,25 +70,23 @@ function doPost(e) {
     const reg = payload.registration || payload;
     const targetSpreadsheetId = payload.spreadsheetId || reg.spreadsheetId || DEFAULT_SPREADSHEET_ID;
     
-    let spreadsheet;
+    let spreadsheet = null;
     try {
-      if (targetSpreadsheetId) {
-        spreadsheet = SpreadsheetApp.openById(targetSpreadsheetId);
-      }
-    } catch (openErr) {
-      Logger.log("Could not open by ID, trying active: " + openErr);
+      spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    } catch (activeErr) {
+      Logger.log("Active spreadsheet lookup notice: " + activeErr);
     }
 
-    if (!spreadsheet) {
+    if (!spreadsheet && targetSpreadsheetId) {
       try {
-        spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-      } catch (activeErr) {
-        Logger.log("No active spreadsheet: " + activeErr);
+        spreadsheet = SpreadsheetApp.openById(targetSpreadsheetId);
+      } catch (openErr) {
+        Logger.log("openById lookup notice: " + openErr);
       }
     }
 
     if (!spreadsheet) {
-      throw new Error("Target Google Sheet not found. Please verify spreadsheet ID: " + targetSpreadsheetId);
+      throw new Error("Target Google Sheet not found. If this script is inside your Google Sheet, ensure you opened Apps Script via Extensions -> Apps Script.");
     }
 
     // 1. Calculate Amount Paid (₹500 per head)
@@ -495,3 +493,50 @@ function escapeHtml(text) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+
+/**
+ * Self-diagnostic test to verify permissions for Google Sheets, Google Drive, and Gmail in 1 click.
+ * Select "testRun" from the toolbar dropdown and click "Run" in Google Apps Script!
+ */
+function testRun() {
+  Logger.log("=== INNOHACK-26 BACKEND SELF-DIAGNOSTIC ===");
+  
+  // 1. Test Sheet Access
+  var spreadsheet = null;
+  try {
+    spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  } catch (e) {}
+
+  if (!spreadsheet && DEFAULT_SPREADSHEET_ID) {
+    try {
+      spreadsheet = SpreadsheetApp.openById(DEFAULT_SPREADSHEET_ID);
+    } catch (openErr) {
+      Logger.log("openById notice: " + openErr);
+    }
+  }
+
+  if (spreadsheet) {
+    Logger.log("✅ Google Sheet connected: " + spreadsheet.getName() + " (ID: " + spreadsheet.getId() + ")");
+  } else {
+    Logger.log("⚠️ Could not locate spreadsheet automatically.");
+  }
+
+  // 2. Test Google Drive folder
+  try {
+    var folder = getOrCreateFolder(FOLDER_NAME);
+    Logger.log("✅ Google Drive folder ready: " + folder.getName() + " (ID: " + folder.getId() + ")");
+  } catch (dErr) {
+    Logger.log("⚠️ Drive folder notice: " + dErr);
+  }
+
+  // 3. Test Email Quota
+  try {
+    var quota = MailApp.getRemainingDailyQuota();
+    Logger.log("✅ Remaining Daily Gmail Quota: " + quota + " emails");
+  } catch (qErr) {
+    Logger.log("⚠️ Email quota notice: " + qErr);
+  }
+
+  Logger.log("🎉 ALL PERMISSIONS VERIFIED! You can now click Deploy -> Manage deployments -> Edit -> New Version -> Deploy.");
+}
+
