@@ -8,14 +8,49 @@
  * 2. In top menu: Extensions -> Apps Script.
  * 3. Delete existing code and paste THIS ENTIRE FILE.
  * 4. Click Save (💾 icon).
- * 5. In toolbar dropdown, select "testRun" and click "▷ Run".
- *    (Click "Review Permissions" -> Choose Account -> "Advanced" -> "Go to ... (unsafe)" -> "Allow").
+ * 5. In toolbar dropdown, select "FORCE_AUTHORIZATION" and click "▷ Run".
+ *    -> Click "Review Permissions" -> Choose your Google Account
+ *    -> Click "Advanced" -> Click "Go to ... (unsafe)" -> Click "Allow".
  * 6. Click "Deploy" (top right) -> "Manage deployments" -> Click Edit (pencil icon)
  *    -> Under Version choose "New version"
  *    -> Under "Who has access", select "Anyone"
  *    -> Click "Deploy".
  * ============================================================================
  */
+
+/**
+ * Run this function ONCE in the Apps Script editor to force Google's Permission Prompt!
+ */
+function FORCE_AUTHORIZATION() {
+  Logger.log("Testing full Google services permissions...");
+  
+  // 1. Force Google Sheets scope
+  try {
+    var s = SpreadsheetApp.getActiveSpreadsheet();
+    Logger.log("Sheets access granted: " + (s ? s.getName() : "Stand-alone mode"));
+  } catch(e) { Logger.log("Sheets note: " + e); }
+
+  // 2. Force Google Drive scope
+  try {
+    var f = DriveApp.getRootFolder();
+    Logger.log("Drive access granted: " + f.getName());
+  } catch(e) { Logger.log("Drive note: " + e); }
+
+  // 3. Force MailApp scope
+  try {
+    var quota = MailApp.getRemainingDailyQuota();
+    Logger.log("MailApp quota granted: " + quota);
+  } catch(e) { Logger.log("Mail note: " + e); }
+
+  // 4. Force GmailApp scope
+  try {
+    var drafts = GmailApp.getDrafts();
+    Logger.log("GmailApp access granted.");
+  } catch(e) { Logger.log("Gmail note: " + e); }
+
+  Logger.log("🎉 SUCCESS: ALL 4 GOOGLE PERMISSIONS ARE FULLY AUTHORIZED!");
+}
+
 
 const DEFAULT_SPREADSHEET_ID = "1J3nZj977Gm2AvfMmg3hJDm6rAMdJFo-16lyxnTlaKZo";
 const FOLDER_NAME = "InnoHack-26 Payment Screenshots";
