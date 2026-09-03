@@ -379,32 +379,24 @@ export default function Register() {
           <div style={{ background: "#091c3d", border: "1px solid rgba(255,220,134,0.35)", borderRadius: "12px", padding: "16px", margin: "0 0 16px", width: "100%", textAlign: "left" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px", borderBottom: "1px solid rgba(98,185,255,0.2)", paddingBottom: "10px", marginBottom: "10px" }}>
               <span style={{ color: "#ffdc86", fontWeight: "bold", fontSize: "13px", display: "flex", alignItems: "center", gap: "6px" }}>
-                <Utensils size={15} /> {memberCount} INDIVIDUAL FOOD &amp; SNACKS PASSES ISSUED
+                <QrCode size={15} /> OFFICIAL TEAM QR CODE ISSUED
               </span>
               <span style={{ color: "#4ade80", fontFamily: "monospace", fontSize: "11px", fontWeight: "bold" }}>
-                INCLUDED IN REGISTRATION
+                INCLUDES {memberCount} MEMBERS
               </span>
             </div>
             <p style={{ color: "#94bcf8", fontSize: "12px", margin: "0 0 10px", lineHeight: "1.4" }}>
-              Includes 6 meal/refreshment slots (24th Night Dinner, 25th Morning Breakfast &amp; 4 Snacks slots). Each squad member can view their pass below:
+              Includes event attendance check-in and all 6 meal/refreshment slots. The whole squad uses this single pass:
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-              {Array.from({ length: memberCount }).map((_, idx) => {
-                const mIdx = idx + 1;
-                const mName = idx === 0 ? form.memberOne : idx === 1 ? form.memberTwo : idx === 2 ? form.memberThree : idx === 3 ? form.memberFour : idx === 4 ? form.memberFive : form.memberSix;
-                const tokenId = `${referenceCode}-F${mIdx}`;
-                return (
-                  <Button
-                    key={tokenId}
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setLocation(`/food-token?token=${encodeURIComponent(tokenId)}&ref=${encodeURIComponent(referenceCode)}&m=${mIdx}`)}
-                    style={{ background: "rgba(33,153,255,0.1)", borderColor: "#2199ff", color: "#ffffff", fontSize: "11px" }}
-                  >
-                    <QrCode size={13} style={{ marginRight: "5px" }} /> Pass #{mIdx}: {mName || `Member ${mIdx}`}
-                  </Button>
-                );
-              })}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setLocation(`/food-token?token=${encodeURIComponent(referenceCode)}&ref=${encodeURIComponent(referenceCode)}&team=true`)}
+                style={{ background: "rgba(33,153,255,0.1)", borderColor: "#2199ff", color: "#ffffff", fontSize: "11px" }}
+              >
+                <QrCode size={13} style={{ marginRight: "5px" }} /> VIEW TEAM QR PASS
+              </Button>
             </div>
           </div>
 

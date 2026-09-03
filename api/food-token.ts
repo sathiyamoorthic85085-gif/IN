@@ -91,8 +91,8 @@ export default async function handler(req: any, res: any) {
       const gasRes = await fetch(getUrl.toString());
       if (gasRes.ok) {
         const data = await gasRes.json();
-        if (data.success && data.pass) {
-          return sendResponse(res, 200, { pass: data.pass });
+        if (data.success && (data.pass || data.team)) {
+          return sendResponse(res, 200, { pass: data.pass, team: data.team });
         }
         return sendResponse(res, 404, { error: data.error || "Food pass not found." });
       }

@@ -323,7 +323,6 @@ function processRegistration(payload) {
           reg.college || "",
           reg.phone || "",
           reg.email || "",
-          "Unclaimed", // Attendance
           "Unclaimed", // 24th Morning Snacks
           "Unclaimed", // 24th Night Dinner
           "Unclaimed", // 24th Night Snacks
@@ -364,26 +363,43 @@ function sendConfirmationGmail(reg, memberNames, amountPaid) {
   var refCode = reg.referenceCode || "IH26-CONFIRMED";
   var subject = "🎉 InnoHack-26 Registration Confirmed | Ref: " + refCode + " (Squad: " + (reg.teamName || "Your Squad") + ")";
 
-  var passUrl = SITE_URL + "/food-token?token=" + encodeURIComponent(refCode) + "&ref=" + encodeURIComponent(refCode) + "&team=true";
-  var qrImage = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(passUrl) + "&color=07111d&bgcolor=ffffff&qzone=1";
+  var passesHtml = "";
+  memberNames.forEach(function(name, idx) {
+    var mIdx = idx + 1;
+    var role = mIdx === 1 ? "Team Leader" : ("Squad Member " + mIdx);
+    var tokenId = refCode + "-F" + mIdx;
+    var passUrl = SITE_URL + "/food-token?token=" + encodeURIComponent(tokenId) + "&ref=" + encodeURIComponent(refCode) + "&m=" + mIdx;
+    var qrImage = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(passUrl) + "&color=07111d&bgcolor=ffffff&qzone=1";
 
-  var passesHtml = '<div style="margin-bottom: 20px; border: 2px solid #2199ff; border-radius: 12px; background: #0b1a38; overflow: hidden;">' +
-    '<div style="padding: 12px 18px; background: #102d5d; border-bottom: 1px solid rgba(98,185,255,0.3); text-align: center;">' +
-    '<span style="background: rgba(33,153,255,0.25); border: 1px solid #2199ff; color: #ffdc86; padding: 3px 8px; border-radius: 4px; font-family: monospace; font-size: 11px; font-weight: bold;">TEAM QR CODE</span>' +
-    '<h3 style="margin: 6px 0 2px; color: #ffffff; font-size: 18px; font-weight: bold;">' + escapeHtml(reg.teamName || "Your Squad") + '</h3>' +
-    '<span style="color: #90b8f8; font-family: monospace; font-size: 12px;">' + memberNames.length + ' Members · Ref: <strong>' + refCode + '</strong></span>' +
-    '</div>' +
-    '<div style="padding: 16px; text-align: center;">' +
-    '<img src="' + qrImage + '" alt="Team QR" width="160" height="160" style="display: inline-block; border-radius: 6px; background: #ffffff; padding: 8px; margin-bottom: 12px;" />' +
-    '<p style="margin: 0 0 6px; color: #ffdc86; font-size: 11px; font-weight: bold;">SHOW THIS SINGLE QR AT REGISTRATION & CATERING</p>' +
-    '<div style="font-size: 12px; color: #d0e2ff; line-height: 1.6; max-width: 250px; margin: 0 auto; text-align: left;">' +
-    '✔️ <strong>Check-in & Attendance</strong><br/>' +
-    '☕ <strong>Morning & Eve Snacks</strong><br/>' +
-    '🍽️ <strong>Hackathon Dinner</strong><br/>' +
-    '🌅 <strong>Day 2 Breakfast</strong>' +
-    '</div>' +
-    '</div>' +
-    '</div>';
+    passesHtml += '<div style="margin-bottom: 20px; border: 2px solid #2199ff; border-radius: 12px; background: #0b1a38; overflow: hidden;">' +
+      '<div style="padding: 12px 18px; background: #102d5d; border-bottom: 1px solid rgba(98,185,255,0.3);">' +
+      '<span style="background: rgba(33,153,255,0.25); border: 1px solid #2199ff; color: #ffdc86; padding: 3px 8px; border-radius: 4px; font-family: monospace; font-size: 11px; font-weight: bold;">PASS #' + mIdx + ' OF ' + memberNames.length + '</span>' +
+      '<h3 style="margin: 6px 0 2px; color: #ffffff; font-size: 18px; font-weight: bold;">' + escapeHtml(name) + '</h3>' +
+      '<span style="color: #90b8f8; font-family: monospace; font-size: 12px;">' + role + ' · Token: <strong>' + tokenId + '</strong></span>' +
+      '</div>' +
+      '<div style="padding: 16px;">' +
+      '<table role="presentation" width="100%">' +
+      '<tr>' +
+      '<td width="140" align="center" style="vertical-align: middle;">' +
+      '<img src="' + qrImage + '" alt="QR" width="120" height="120" style="display: block; border-radius: 6px; background: #ffffff; padding: 6px;" />' +
+      '<span style="display: block; margin-top: 6px; color: #90b8f8; font-size: 10px; font-family: monospace;">SCAN AT CATERING DESK</span>' +
+      '</td>' +
+      '<td style="padding-left: 14px; vertical-align: top;">' +
+      '<p style="margin: 0 0 6px; color: #ffdc86; font-size: 11px; font-weight: bold;">INCLUDES 6 MEAL & REFRESHMENT SLOTS:</p>' +
+      '<div style="font-size: 12px; color: #d0e2ff; line-height: 1.6;">' +
+      '☕ <strong>24th Sep Morning</strong> Snacks & Tea<br/>' +
+      '🍽️ <strong>24th Sep Night</strong> Hackathon Feast (Dinner)<br/>' +
+      '🌙 <strong>24th Sep Night</strong> Midnight Energy Refreshments<br/>' +
+      '🌅 <strong>25th Sep Morning</strong> Day 2 Breakfast<br/>' +
+      '☕ <strong>25th Sep Morning</strong> Snacks & Tea<br/>' +
+      '🥪 <strong>25th Sep Afternoon</strong> Valedictory High Tea' +
+      '</div>' +
+      '</td>' +
+      '</tr>' +
+      '</table>' +
+      '</div>' +
+      '</div>';
+  });
 
   var htmlBody = '<!DOCTYPE html><html><head><meta charset="utf-8"></head>' +
     '<body style="margin:0; padding:0; background-color: #030a1c; font-family: Arial, sans-serif; color: #e2e8f0;">' +
@@ -422,8 +438,8 @@ function sendConfirmationGmail(reg, memberNames, amountPaid) {
 
     '<!-- Food Passes -->' +
     '<div style="padding: 16px 24px 6px;">' +
-    '<h2 style="margin: 0 0 6px; color: #ffffff; font-size: 18px; font-weight: bold;">🎟️ OFFICIAL TEAM QR CODE</h2>' +
-    '<p style="margin: 0 0 16px; color: #94bcf8; font-size: 13px;">Use this single QR code for the entire squad. The volunteer scanning it will see your team roster and can tick off attendance and food for each member simultaneously.</p>' +
+    '<h2 style="margin: 0 0 6px; color: #ffffff; font-size: 18px; font-weight: bold;">🍽️ INDIVIDUAL FOOD & SNACKS PASSES (' + memberNames.length + ' ISSUED)</h2>' +
+    '<p style="margin: 0 0 16px; color: #94bcf8; font-size: 13px;">Show each QR pass on your phone at the catering counter for instant meal check-off.</p>' +
     passesHtml +
     '</div>' +
 
@@ -475,7 +491,7 @@ function getOrCreateFoodTokensSheet(spreadsheet) {
   var FOOD_HEADERS = [
     "Timestamp", "Token ID", "Reference Code", "Member Name", "Role",
     "Team Name", "College", "Phone", "Email",
-    "Attendance", "24th Mrng Snacks", "24th Night Dinner", "24th Night Snacks",
+    "24th Mrng Snacks", "24th Night Dinner", "24th Night Snacks",
     "25th Mrng Bfast", "25th Mrng Snacks", "25th Aft Snacks"
   ];
 
@@ -600,7 +616,7 @@ function testRun() {
 }
 
 /**
- * Direct Scanner API: Lookup all team members by Reference Code (or Token ID)
+ * Direct Food Scanner API: Lookup participant token & 6 meal claim statuses
  */
 function handleTokenLookup(token) {
   try {
@@ -608,7 +624,7 @@ function handleTokenLookup(token) {
     if (!cleanToken) {
       return ContentService.createTextOutput(JSON.stringify({
         success: false,
-        error: "Missing token/reference code parameter"
+        error: "Missing token parameter"
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
@@ -617,50 +633,38 @@ function handleTokenLookup(token) {
 
     var sheet = getOrCreateFoodTokensSheet(spreadsheet);
     var data = sheet.getDataRange().getValues();
-    var members = [];
 
     for (var i = 1; i < data.length; i++) {
       var row = data[i];
       var rowToken = String(row[1] || "").trim();
-      var rowRef = String(row[2] || "").trim();
-      
-      if (rowToken.toLowerCase() === cleanToken.toLowerCase() || 
-          rowRef.toLowerCase() === cleanToken.toLowerCase() || 
-          rowToken.replace(/-/g, "").toLowerCase() === cleanToken.replace(/-/g, "").toLowerCase() ||
-          rowRef.replace(/-/g, "").toLowerCase() === cleanToken.replace(/-/g, "").toLowerCase()) {
-        
-        members.push({
-          tokenId: rowToken,
-          referenceCode: rowRef,
-          memberName: String(row[3] || ""),
-          role: String(row[4] || "Squad Member"),
-          teamName: String(row[5] || ""),
-          college: String(row[6] || ""),
-          phone: String(row[7] || ""),
-          email: String(row[8] || ""),
-          meals: {
-            attendance: { claimed: isClaimedVal(row[9]), claimedAt: String(row[9] || "") },
-            sep24_mrng_snacks: { claimed: isClaimedVal(row[10]), claimedAt: String(row[10] || "") },
-            sep24_night_dinner: { claimed: isClaimedVal(row[11]), claimedAt: String(row[11] || "") },
-            sep24_night_snacks: { claimed: isClaimedVal(row[12]), claimedAt: String(row[12] || "") },
-            sep25_mrng_bfast: { claimed: isClaimedVal(row[13]), claimedAt: String(row[13] || "") },
-            sep25_mrng_snacks: { claimed: isClaimedVal(row[14]), claimedAt: String(row[14] || "") },
-            sep25_aft_snacks: { claimed: isClaimedVal(row[15]), claimedAt: String(row[15] || "") }
+      if (rowToken.toLowerCase() === cleanToken.toLowerCase() || rowToken.replace(/-/g, "").toLowerCase() === cleanToken.replace(/-/g, "").toLowerCase()) {
+        return ContentService.createTextOutput(JSON.stringify({
+          success: true,
+          pass: {
+            tokenId: rowToken,
+            referenceCode: String(row[2] || ""),
+            memberName: String(row[3] || ""),
+            role: String(row[4] || "Squad Member"),
+            teamName: String(row[5] || ""),
+            college: String(row[6] || ""),
+            phone: String(row[7] || ""),
+            email: String(row[8] || ""),
+            meals: {
+              sep24_mrng_snacks: { claimed: isClaimedVal(row[9]), claimedAt: String(row[9] || "") },
+              sep24_night_dinner: { claimed: isClaimedVal(row[10]), claimedAt: String(row[10] || "") },
+              sep24_night_snacks: { claimed: isClaimedVal(row[11]), claimedAt: String(row[11] || "") },
+              sep25_mrng_bfast: { claimed: isClaimedVal(row[12]), claimedAt: String(row[12] || "") },
+              sep25_mrng_snacks: { claimed: isClaimedVal(row[13]), claimedAt: String(row[13] || "") },
+              sep25_aft_snacks: { claimed: isClaimedVal(row[14]), claimedAt: String(row[14] || "") }
+            }
           }
-        });
+        })).setMimeType(ContentService.MimeType.JSON);
       }
-    }
-
-    if (members.length > 0) {
-      return ContentService.createTextOutput(JSON.stringify({
-        success: true,
-        team: members
-      })).setMimeType(ContentService.MimeType.JSON);
     }
 
     return ContentService.createTextOutput(JSON.stringify({
       success: false,
-      error: "Team / Reference Code not found in Google Sheet: " + cleanToken
+      error: "Token not found in Google Sheet: " + cleanToken
     })).setMimeType(ContentService.MimeType.JSON);
 
   } catch (err) {
@@ -686,16 +690,15 @@ function handleMealRedeem(token, mealSlotId, claimed, organizerEmail) {
     var data = sheet.getDataRange().getValues();
 
     var colMap = {
-      attendance: 10,
-      sep24_mrng_snacks: 11,
-      sep24_night_dinner: 12,
-      sep24_night_snacks: 13,
-      sep25_mrng_bfast: 14,
-      sep25_mrng_snacks: 15,
-      sep25_aft_snacks: 16
+      sep24_mrng_snacks: 10,
+      sep24_night_dinner: 11,
+      sep24_night_snacks: 12,
+      sep25_mrng_bfast: 13,
+      sep25_mrng_snacks: 14,
+      sep25_aft_snacks: 15
     };
 
-    var colIdx = colMap[mealSlotId] || 10; // default attendance
+    var colIdx = colMap[mealSlotId] || 11; // default dinner
 
     for (var i = 1; i < data.length; i++) {
       var rowToken = String(data[i][1] || "").trim();
@@ -738,7 +741,6 @@ function handleHeadCount() {
 
     var totalIssued = Math.max(0, data.length - 1);
     var mealStats = {
-      attendance: { claimed: 0, pending: 0 },
       sep24_mrng_snacks: { claimed: 0, pending: 0 },
       sep24_night_dinner: { claimed: 0, pending: 0 },
       sep24_night_snacks: { claimed: 0, pending: 0 },
@@ -749,13 +751,12 @@ function handleHeadCount() {
 
     for (var i = 1; i < data.length; i++) {
       var r = data[i];
-      if (isClaimedVal(r[9])) mealStats.attendance.claimed++; else mealStats.attendance.pending++;
-      if (isClaimedVal(r[10])) mealStats.sep24_mrng_snacks.claimed++; else mealStats.sep24_mrng_snacks.pending++;
-      if (isClaimedVal(r[11])) mealStats.sep24_night_dinner.claimed++; else mealStats.sep24_night_dinner.pending++;
-      if (isClaimedVal(r[12])) mealStats.sep24_night_snacks.claimed++; else mealStats.sep24_night_snacks.pending++;
-      if (isClaimedVal(r[13])) mealStats.sep25_mrng_bfast.claimed++; else mealStats.sep25_mrng_bfast.pending++;
-      if (isClaimedVal(r[14])) mealStats.sep25_mrng_snacks.claimed++; else mealStats.sep25_mrng_snacks.pending++;
-      if (isClaimedVal(r[15])) mealStats.sep25_aft_snacks.claimed++; else mealStats.sep25_aft_snacks.pending++;
+      if (isClaimedVal(r[9])) mealStats.sep24_mrng_snacks.claimed++; else mealStats.sep24_mrng_snacks.pending++;
+      if (isClaimedVal(r[10])) mealStats.sep24_night_dinner.claimed++; else mealStats.sep24_night_dinner.pending++;
+      if (isClaimedVal(r[11])) mealStats.sep24_night_snacks.claimed++; else mealStats.sep24_night_snacks.pending++;
+      if (isClaimedVal(r[12])) mealStats.sep25_mrng_bfast.claimed++; else mealStats.sep25_mrng_bfast.pending++;
+      if (isClaimedVal(r[13])) mealStats.sep25_mrng_snacks.claimed++; else mealStats.sep25_mrng_snacks.pending++;
+      if (isClaimedVal(r[14])) mealStats.sep25_aft_snacks.claimed++; else mealStats.sep25_aft_snacks.pending++;
     }
 
     return ContentService.createTextOutput(JSON.stringify({
