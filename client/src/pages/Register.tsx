@@ -452,21 +452,19 @@ export default function Register() {
         </button>
         <div className="registration-heading">
           <p className="eyebrow">
-            <LockKeyhole size={15} /> SECURE SQUAD REGISTRATION
+            <LockKeyhole size={15} /> SECURE REGISTRATION
           </p>
-          <h1>REGISTER YOUR <i>SQUAD.</i></h1>
+          <h1>REGISTER <i>SQUAD.</i></h1>
           <p>
-            Every field is required. Pay the college QR first, attach your payment screenshot, and enter the UPI transaction ID / UTR to submit a squad of up to 6 members (Team Lead + Members).
+            Fill all fields, pay via QR, upload screenshot, and submit.
           </p>
         </div>
         {isOffline && (
           <div className="payment-pending" role="status">
             <CreditCard size={20} aria-hidden="true" />
             <div>
-              <b>OFFLINE — REGISTRATION IS NOT SAVED</b>
-              <span>
-                Reconnect to the internet before submitting. Any form details entered while offline stay only on this device and must be submitted again online.
-              </span>
+              <b>OFFLINE</b>
+              <span>Reconnect to internet to submit.</span>
             </div>
           </div>
         )}
@@ -632,7 +630,7 @@ export default function Register() {
             )}
           </div>
           <fieldset>
-            <legend>BUILD TYPE — STORED IN A SEPARATE EXPORT SHEET</legend>
+            <legend>BUILD TYPE</legend>
             <div className="build-type-choice">
               <button
                 type="button"
@@ -641,7 +639,7 @@ export default function Register() {
                 onClick={() => update("buildType", "software")}
               >
                 <b>SOFTWARE BUILD</b>
-                <span>Apps, models, web systems, dashboards, APIs, or digital services.</span>
+                <span>Digital solutions.</span>
               </button>
               <button
                 type="button"
@@ -650,7 +648,7 @@ export default function Register() {
                 onClick={() => update("buildType", "hardware")}
               >
                 <b>HARDWARE BUILD</b>
-                <span>Devices, sensors, circuits, embedded systems, or physical prototypes.</span>
+                <span>Physical devices.</span>
               </button>
             </div>
           </fieldset>
@@ -659,30 +657,27 @@ export default function Register() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
               <div>
                 <span style={{ color: "#ffdc86", fontSize: "11px", fontWeight: "bold", fontFamily: "monospace", letterSpacing: "1.5px" }}>
-                  DYNAMIC SQUAD FEE &amp; PASS CALCULATION
+                  FEE CALCULATION
                 </span>
                 <div style={{ color: "#ffffff", fontSize: "20px", fontWeight: 900, marginTop: "2px" }}>
-                  {memberCount} Member{memberCount > 1 ? "s" : ""} × ₹500 = <span style={{ color: "#4ade80" }}>₹{memberCount * 500} Total Payable</span>
+                  {memberCount} Member{memberCount > 1 ? "s" : ""} × ₹500 = <span style={{ color: "#4ade80" }}>₹{memberCount * 500} Total</span>
                 </div>
               </div>
               <div style={{ background: "rgba(33,153,255,0.2)", border: "1px solid #2199ff", borderRadius: "8px", padding: "6px 12px", color: "#90c8ff", fontSize: "12px", fontWeight: "bold" }}>
-                🍽️ Includes {memberCount} Individual Food &amp; Snacks Pass{memberCount > 1 ? "es" : ""}
+                🍽️ Includes {memberCount} Food Pass{memberCount > 1 ? "es" : ""}
               </div>
             </div>
             <p style={{ margin: "8px 0 0", color: "#c0d4f8", fontSize: "12px" }}>
-              Transfer exactly <strong style={{ color: "#4ade80" }}>₹{memberCount * 500}</strong> via UPI to the college QR below. Each member will receive a personal food pass in the confirmation email.
+              Pay exactly <strong style={{ color: "#4ade80" }}>₹{memberCount * 500}</strong> via UPI below.
             </p>
           </div>
 
           <section className="qr-payment-panel">
             <div>
-              <p className="eyebrow">OFFICIAL COLLEGE UPI</p>
+              <p className="eyebrow">OFFICIAL UPI</p>
               <h2>SCAN &amp; PAY <i>₹{memberCount * 500}.</i></h2>
               <p>
-                Use any installed UPI app to scan this single official college QR for <strong>₹{memberCount * 500}</strong> ({memberCount} squad member{memberCount > 1 ? "s" : ""} @ ₹500/head). After payment, upload the screenshot and enter the UTR / transaction ID below.
-              </p>
-              <p className="payment-reference-note">
-                <strong>Payment screenshot reference:</strong> Upload your own successful UPI payment screenshot below.
+                Scan and pay <strong>₹{memberCount * 500}</strong>. Upload screenshot below.
               </p>
             </div>
             <figure className="qr-single-figure">
@@ -691,7 +686,7 @@ export default function Register() {
                 OPEN FULL-SIZE QR
               </a>
               <figcaption>
-                One official college payment QR. Pay ₹{memberCount * 500} for {memberCount} member{memberCount > 1 ? "s" : ""}.
+                College QR.
               </figcaption>
             </figure>
           </section>
@@ -735,8 +730,8 @@ export default function Register() {
               >
                 <UploadCloud size={32} />
                 <div>
-                  <p>Click or drag & drop payment screenshot here</p>
-                  <span>Accepts PNG, JPG, JPEG, WEBP · <strong>Max file size: 200 KB</strong> (auto-compressed)</span>
+                  <p>Click or drag & drop screenshot</p>
+                  <span><strong>Max file size: 200 KB</strong></span>
                 </div>
               </div>
             )}
@@ -762,7 +757,7 @@ export default function Register() {
               aria-describedby="transaction-reference-help"
             />
             <small id="transaction-reference-help">
-              Letters, numbers, spaces, hyphens, slashes, dots, underscores, and colons are accepted. Copy and paste the exact value shown by your payment app.
+              Paste exact ID from payment app.
             </small>
           </label>
           <label className="registration-consent">
@@ -772,13 +767,13 @@ export default function Register() {
               onChange={(event) => update("consent", event.target.checked)}
             />{" "}
             <span>
-              I confirm that all candidate details, squad members, and the transaction ID / payment proof are accurate. I understand organiser verification is required.
+              I confirm all details are accurate.
             </span>
           </label>
           <div className="registration-security">
             <ShieldCheck size={18} aria-hidden="true" />
             <span>
-              Server-side validation, Google Sheets mirroring, and secure transport protect this registration flow. The website never requests bank, card, or UPI passwords.
+              Secure registration. We never ask for passwords.
             </span>
           </div>
           <Button
