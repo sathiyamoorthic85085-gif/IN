@@ -4,6 +4,9 @@ import {
   isGoogleSheetsBackendConfigured,
   mirrorRegistrationToGoogleSheets,
 } from "./googleSheetsMirror";
+import { generateFoodTokens } from "./emailTemplate";
+import { sendRegistrationConfirmationEmail } from "./emailService";
+import { registerSquadFoodTokens } from "./foodTokenService";
 import {
   createSecureRegistration,
   getSecureRegistrationsByBuildType,
@@ -187,6 +190,50 @@ export async function submitSecureRegistration(input: RegistrationInput, clientK
   recentRegistrations.set(referenceCode.toLowerCase(), squadRecord);
   recentRegistrations.set(input.email.toLowerCase(), squadRecord);
 
+  const amountPaid = input.memberCount * 500;
+  const members = [
+    input.memberOne,
+    input.memberTwo,
+    input.memberThree,
+    input.memberFour,
+    input.memberFive,
+    input.memberSix,
+  ].slice(0, input.memberCount).filter((m): m is string => Boolean(m && m.trim()));
+
+  const foodTokens = generateFoodTokens(referenceCode, members);
+  registerSquadFoodTokens({
+    referenceCode,
+    teamName: input.teamName,
+    leadName: input.leadName,
+    email: input.email.toLowerCase(),
+    phone: input.phone,
+    college: input.college,
+    memberCount: input.memberCount,
+    members,
+    domain: input.domain,
+    buildType: input.buildType,
+  });
+
+  // Trigger automated confirmation email asynchronously
+  sendRegistrationConfirmationEmail({
+    referenceCode,
+    teamName: input.teamName,
+    leadName: input.leadName,
+    email: input.email.toLowerCase(),
+    phone: input.phone,
+    college: input.college,
+    memberCount: input.memberCount,
+    members,
+    domain: input.domain,
+    buildType: input.buildType,
+    transactionId: input.transactionId,
+    amountPaid,
+    submittedAt: squadRecord.submittedAt,
+    foodTokens,
+  }).catch((err) => {
+    console.warn("[RegistrationService] Email dispatch notice:", err);
+  });
+
   // Mirror to Google Sheets & Google Drive
   let mirrorResult: { status: GoogleSheetsMirrorStatus; photoUrl?: string } = { status: "not_configured" };
   try {
@@ -222,6 +269,8 @@ export async function submitSecureRegistration(input: RegistrationInput, clientK
     paymentStatus: "payment_pending" as const,
     mirrorStatus: mirrorResult.status,
     photoUrl: mirrorResult.photoUrl,
+    amountPaid,
+    foodTokens,
   };
 }
 

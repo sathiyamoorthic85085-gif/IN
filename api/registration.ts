@@ -1,5 +1,8 @@
 import { z } from "zod";
 import crypto from "node:crypto";
+import { generateFoodTokens } from "../server/emailTemplate";
+import { sendRegistrationConfirmationEmail } from "../server/emailService";
+import { registerSquadFoodTokens } from "../server/foodTokenService";
 
 const registrationDomains = [
   "AgriTech & GreenTech",
@@ -526,6 +529,31 @@ export default async function handler(req: any, res: any) {
     }
 
     const referenceCode = emergencyReferenceCode();
+    const amountPaid = input.memberCount * 500;
+    const members = [
+      input.memberOne,
+      input.memberTwo,
+      input.memberThree,
+      input.memberFour,
+      input.memberFive,
+      input.memberSix,
+    ].slice(0, input.memberCount).filter((m): m is string => Boolean(m && m.trim()));
+
+    // Generate individual food & snacks passes for each squad member
+    const foodTokens = generateFoodTokens(referenceCode, members);
+    registerSquadFoodTokens({
+      referenceCode,
+      teamName: input.teamName,
+      leadName: input.leadName,
+      email: input.email.toLowerCase(),
+      phone: input.phone,
+      college: input.college,
+      memberCount: input.memberCount,
+      members,
+      domain: input.domain,
+      buildType: input.buildType,
+    });
+
     const registrationRecord = {
       referenceCode,
       teamName: input.teamName,
@@ -543,12 +571,34 @@ export default async function handler(req: any, res: any) {
       domain: input.domain,
       buildType: input.buildType,
       transactionId: input.transactionId,
+      amountPaid,
       paymentStatus: "payment_pending" as const,
       submittedAt: new Date().toISOString(),
       photoBase64: input.photoBase64,
       photoName: input.photoName,
       photoType: input.photoType,
+      foodTokens,
     };
+
+    // Trigger automated email confirmation via Node/SMTP/Resend in parallel (non-blocking)
+    sendRegistrationConfirmationEmail({
+      referenceCode,
+      teamName: input.teamName,
+      leadName: input.leadName,
+      email: input.email.toLowerCase(),
+      phone: input.phone,
+      college: input.college,
+      memberCount: input.memberCount,
+      members,
+      domain: input.domain,
+      buildType: input.buildType,
+      transactionId: input.transactionId,
+      amountPaid,
+      submittedAt: registrationRecord.submittedAt,
+      foodTokens,
+    }).catch((emailErr) => {
+      console.warn("[VercelRegistration] Email dispatch notice:", emailErr);
+    });
 
     // 1. Try Google Apps Script Webhook first (handles photo upload to Google Drive under user's quota)
     let mirrorResult: { status: string; photoUrl?: string } = { status: "not_configured" };
@@ -578,6 +628,9 @@ export default async function handler(req: any, res: any) {
       teamName: input.teamName,
       leadName: input.leadName,
       email: input.email,
+      amountPaid,
+      memberCount: input.memberCount,
+      foodTokens,
     });
   } catch (fatalError) {
     console.error("[VercelRegistration] Fatal error handler caught:", fatalError);

@@ -162,7 +162,7 @@ function LeadershipDepartmentCard({ department }: { department: (typeof leadersh
   const facultyHasPhone = "phone" in department.faculty;
   const facultyHasImage = "image" in department.faculty && Boolean(department.faculty.image);
   const studentHasPhone = "phone" in department.student;
-  const studentProfiles = "profiles" in department.student && Array.isArray(department.student.profiles) ? department.student.profiles : [];
+  const studentProfiles: readonly any[] = "profiles" in department.student && Array.isArray(department.student.profiles) ? department.student.profiles : [];
 
   return (
     <article className={`leadership-department ${isConfirmed ? "is-confirmed-department" : ""}`}>

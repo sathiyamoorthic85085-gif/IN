@@ -1,6 +1,6 @@
 import { type ChangeEvent, type DragEvent, type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
-import { ArrowLeft, CheckCircle2, CreditCard, ImageIcon, LockKeyhole, ShieldCheck, UploadCloud, X } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CreditCard, ImageIcon, LockKeyhole, Mail, QrCode, ShieldCheck, UploadCloud, Utensils, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { eventAssets } from "@/lib/eventAssets";
@@ -300,24 +300,73 @@ export default function Register() {
   };
 
   if (referenceCode) {
+    const totalAmount = memberCount * 500;
     return (
       <main className="registration-page">
-        <section className="registration-shell registration-success">
-          <CheckCircle2 size={42} aria-hidden="true" />
-          <p className="eyebrow">REGISTRATION SUBMITTED</p>
+        <section className="registration-shell registration-success" style={{ maxWidth: "700px" }}>
+          <CheckCircle2 size={46} aria-hidden="true" color="#4ade80" />
+          <p className="eyebrow">REGISTRATION SUBMITTED &amp; CONFIRMED</p>
           <h1>YOUR SQUAD IS ON <i>THE SIGNAL.</i></h1>
           <p>
-            Your registration reference is <strong>{referenceCode}</strong>. Keep it for organiser review.
+            Your registration reference is <strong style={{ color: "#ffdc86", fontFamily: "monospace", fontSize: "17px" }}>{referenceCode}</strong>.
           </p>
-          <div className="payment-pending">
-            <CreditCard size={20} aria-hidden="true" />
+
+          {/* Email Confirmation Notice Box */}
+          <div style={{ background: "rgba(33,153,255,0.12)", border: "1px solid #2199ff", borderRadius: "12px", padding: "16px", margin: "14px 0", width: "100%", textAlign: "left", display: "flex", gap: "12px", alignItems: "flex-start" }}>
+            <Mail size={22} color="#ffdc86" style={{ flexShrink: 0, marginTop: "2px" }} />
             <div>
-              <b>PAYMENT REFERENCE RECORDED</b>
-              <span>
-                Your transaction ID / UTR and registration details were recorded in the event backend. Organisers will verify your payment details.
+              <b style={{ color: "#ffdc86", fontSize: "12px", fontFamily: "monospace", letterSpacing: "1px", display: "block" }}>
+                AUTOMATIC GMAIL CONFIRMATION DISPATCHED
+              </b>
+              <span style={{ color: "#c9ddff", fontSize: "13px", lineHeight: "1.5", display: "block", marginTop: "4px" }}>
+                A confirmation email with your official event poster cover, Reference Code <strong>{referenceCode}</strong>, and receipt of <strong>₹{totalAmount}</strong> ({memberCount} members × ₹500) has been sent to <strong style={{ color: "#ffffff" }}>{form.email}</strong>.
               </span>
             </div>
           </div>
+
+          {/* Food Tokens Preview Box */}
+          <div style={{ background: "#091c3d", border: "1px solid rgba(255,220,134,0.35)", borderRadius: "12px", padding: "16px", margin: "0 0 16px", width: "100%", textAlign: "left" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px", borderBottom: "1px solid rgba(98,185,255,0.2)", paddingBottom: "10px", marginBottom: "10px" }}>
+              <span style={{ color: "#ffdc86", fontWeight: "bold", fontSize: "13px", display: "flex", alignItems: "center", gap: "6px" }}>
+                <Utensils size={15} /> {memberCount} INDIVIDUAL FOOD &amp; SNACKS PASSES ISSUED
+              </span>
+              <span style={{ color: "#4ade80", fontFamily: "monospace", fontSize: "11px", fontWeight: "bold" }}>
+                INCLUDED IN REGISTRATION
+              </span>
+            </div>
+            <p style={{ color: "#94bcf8", fontSize: "12px", margin: "0 0 10px", lineHeight: "1.4" }}>
+              Includes 6 meal/refreshment slots (24th Night Dinner, 25th Morning Breakfast &amp; 4 Snacks slots). Each squad member can view their pass below:
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+              {Array.from({ length: memberCount }).map((_, idx) => {
+                const mIdx = idx + 1;
+                const mName = idx === 0 ? form.memberOne : idx === 1 ? form.memberTwo : idx === 2 ? form.memberThree : idx === 3 ? form.memberFour : idx === 4 ? form.memberFive : form.memberSix;
+                const tokenId = `${referenceCode}-F${mIdx}`;
+                return (
+                  <Button
+                    key={tokenId}
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setLocation(`/food-token?token=${encodeURIComponent(tokenId)}&ref=${encodeURIComponent(referenceCode)}&m=${mIdx}`)}
+                    style={{ background: "rgba(33,153,255,0.1)", borderColor: "#2199ff", color: "#ffffff", fontSize: "11px" }}
+                  >
+                    <QrCode size={13} style={{ marginRight: "5px" }} /> Pass #{mIdx}: {mName || `Member ${mIdx}`}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="payment-pending">
+            <CreditCard size={20} aria-hidden="true" />
+            <div>
+              <b>PAYMENT RECEIPT RECORDED (₹{totalAmount})</b>
+              <span>
+                Transaction ID: <strong style={{ color: "#ffffff", fontFamily: "monospace" }}>{form.transactionId}</strong>. Registered details are synchronized with the event database.
+              </span>
+            </div>
+          </div>
+
           <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", width: "100%", marginTop: "12px" }}>
             <Button
               className="cta"
@@ -554,15 +603,35 @@ export default function Register() {
               </button>
             </div>
           </fieldset>
+          {/* Live Dynamic Fee & Passes Calculation Card */}
+          <div style={{ background: "linear-gradient(135deg, rgba(33,153,255,0.14), rgba(255,220,134,0.12))", border: "1px solid #2199ff", borderRadius: "12px", padding: "16px 20px", margin: "10px 0" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
+              <div>
+                <span style={{ color: "#ffdc86", fontSize: "11px", fontWeight: "bold", fontFamily: "monospace", letterSpacing: "1.5px" }}>
+                  DYNAMIC SQUAD FEE &amp; PASS CALCULATION
+                </span>
+                <div style={{ color: "#ffffff", fontSize: "20px", fontWeight: 900, marginTop: "2px" }}>
+                  {memberCount} Member{memberCount > 1 ? "s" : ""} × ₹500 = <span style={{ color: "#4ade80" }}>₹{memberCount * 500} Total Payable</span>
+                </div>
+              </div>
+              <div style={{ background: "rgba(33,153,255,0.2)", border: "1px solid #2199ff", borderRadius: "8px", padding: "6px 12px", color: "#90c8ff", fontSize: "12px", fontWeight: "bold" }}>
+                🍽️ Includes {memberCount} Individual Food &amp; Snacks Pass{memberCount > 1 ? "es" : ""}
+              </div>
+            </div>
+            <p style={{ margin: "8px 0 0", color: "#c0d4f8", fontSize: "12px" }}>
+              Transfer exactly <strong style={{ color: "#4ade80" }}>₹{memberCount * 500}</strong> via UPI to the college QR below. Each member will receive a personal food pass in the confirmation email.
+            </p>
+          </div>
+
           <section className="qr-payment-panel">
             <div>
               <p className="eyebrow">OFFICIAL COLLEGE UPI</p>
-              <h2>SCAN ONCE, THEN ENTER YOUR <i>UTR.</i></h2>
+              <h2>SCAN &amp; PAY <i>₹{memberCount * 500}.</i></h2>
               <p>
-                Use any installed UPI app to scan this single official college QR. After payment, upload the payment screenshot and enter the UTR / transaction ID shown on your own completed-payment screen.
+                Use any installed UPI app to scan this single official college QR for <strong>₹{memberCount * 500}</strong> ({memberCount} squad member{memberCount > 1 ? "s" : ""} @ ₹500/head). After payment, upload the screenshot and enter the UTR / transaction ID below.
               </p>
               <p className="payment-reference-note">
-                <strong>Payment screenshot reference:</strong> Upload your own successful UPI payment screenshot below. Do not copy a sample transaction ID from another image.
+                <strong>Payment screenshot reference:</strong> Upload your own successful UPI payment screenshot below.
               </p>
             </div>
             <figure className="qr-single-figure">
@@ -571,7 +640,7 @@ export default function Register() {
                 OPEN FULL-SIZE QR
               </a>
               <figcaption>
-                One official college payment QR. If your UPI app reports an invalid recipient or QR, do not transfer and contact the college payment desk.
+                One official college payment QR. Pay ₹{memberCount * 500} for {memberCount} member{memberCount > 1 ? "s" : ""}.
               </figcaption>
             </figure>
           </section>

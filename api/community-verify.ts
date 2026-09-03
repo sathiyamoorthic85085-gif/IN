@@ -45,19 +45,19 @@ function sendResponse(res: any, status: number, data: any) {
 const WHATSAPP_MAIN_URL =
   process.env.WHATSAPP_COMMUNITY_URL ||
   process.env.VITE_WHATSAPP_COMMUNITY_URL ||
-  "https://chat.whatsapp.com/J3tG21eInnoHack26CommunityOfficial";
+  "https://chat.whatsapp.com/CFnmH4QfqFo3ijpJb76fGe?mode=gi_t";
 
 const WHATSAPP_SOFTWARE_URL =
   process.env.WHATSAPP_SOFTWARE_URL ||
-  "https://chat.whatsapp.com/InnoHack26SoftwareTrackOfficial";
+  "https://chat.whatsapp.com/CFnmH4QfqFo3ijpJb76fGe?mode=gi_t";
 
 const WHATSAPP_HARDWARE_URL =
   process.env.WHATSAPP_HARDWARE_URL ||
-  "https://chat.whatsapp.com/InnoHack26HardwareTrackOfficial";
+  "https://chat.whatsapp.com/CFnmH4QfqFo3ijpJb76fGe?mode=gi_t";
 
 const WHATSAPP_MENTOR_URL =
   process.env.WHATSAPP_MENTOR_URL ||
-  "https://chat.whatsapp.com/InnoHack26MentorSupportOfficial";
+  "https://chat.whatsapp.com/CFnmH4QfqFo3ijpJb76fGe?mode=gi_t";
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") {

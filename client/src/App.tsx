@@ -11,6 +11,8 @@ import Register from "./pages/Register";
 
 const Community = lazy(() => import("./pages/Community"));
 const AdminRegistrations = lazy(() => import("./pages/AdminRegistrations"));
+const FoodTokenPortal = lazy(() => import("./pages/FoodTokenPortal"));
+const AdminFoodScanner = lazy(() => import("./pages/AdminFoodScanner"));
 
 function Router() {
   return (
@@ -21,6 +23,27 @@ function Router() {
         {() => (
           <Suspense fallback={<main className="registration-page"><div className="registration-shell">Opening Command Deck…</div></main>}>
             <Community />
+          </Suspense>
+        )}
+      </Route>
+      <Route path="/food-token">
+        {() => (
+          <Suspense fallback={<main className="registration-page"><div className="registration-shell">Verifying Food Pass…</div></main>}>
+            <FoodTokenPortal />
+          </Suspense>
+        )}
+      </Route>
+      <Route path="/admin/food-scan">
+        {() => (
+          <Suspense fallback={<main className="admin-state">Loading Organiser Scanner…</main>}>
+            <AdminFoodScanner />
+          </Suspense>
+        )}
+      </Route>
+      <Route path="/admin/catering">
+        {() => (
+          <Suspense fallback={<main className="admin-state">Loading Organiser Scanner…</main>}>
+            <AdminFoodScanner />
           </Suspense>
         )}
       </Route>

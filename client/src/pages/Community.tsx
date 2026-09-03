@@ -37,10 +37,10 @@ interface WhatsAppLinks {
 }
 
 const DEFAULT_LINKS: WhatsAppLinks = {
-  mainCommunity: "https://chat.whatsapp.com/J3tG21eInnoHack26CommunityOfficial",
-  softwareTrack: "https://chat.whatsapp.com/InnoHack26SoftwareTrackOfficial",
-  hardwareTrack: "https://chat.whatsapp.com/InnoHack26HardwareTrackOfficial",
-  mentorHelpdesk: "https://chat.whatsapp.com/InnoHack26MentorSupportOfficial",
+  mainCommunity: "https://chat.whatsapp.com/CFnmH4QfqFo3ijpJb76fGe?mode=gi_t",
+  softwareTrack: "https://chat.whatsapp.com/CFnmH4QfqFo3ijpJb76fGe?mode=gi_t",
+  hardwareTrack: "https://chat.whatsapp.com/CFnmH4QfqFo3ijpJb76fGe?mode=gi_t",
+  mentorHelpdesk: "https://chat.whatsapp.com/CFnmH4QfqFo3ijpJb76fGe?mode=gi_t",
 };
 
 export default function Community() {
