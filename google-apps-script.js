@@ -91,24 +91,38 @@ function processRegistration(payload) {
     var reg = payload.registration || payload;
     var targetSpreadsheetId = payload.spreadsheetId || reg.spreadsheetId || DEFAULT_SPREADSHEET_ID;
 
-    // Resolve Spreadsheet
+    // Resolve Spreadsheet with auto-healing fallback
     var spreadsheet = null;
     try {
       spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-    } catch (activeErr) {
-      Logger.log("getActiveSpreadsheet notice: " + activeErr);
-    }
+    } catch (activeErr) {}
 
     if (!spreadsheet && targetSpreadsheetId) {
       try {
         spreadsheet = SpreadsheetApp.openById(targetSpreadsheetId);
-      } catch (openErr) {
-        Logger.log("openById notice: " + openErr);
+      } catch (openErr) {}
+    }
+
+    if (!spreadsheet) {
+      try {
+        var files = DriveApp.getFilesByName("InnoHack-26 Registrations");
+        if (files.hasNext()) {
+          spreadsheet = SpreadsheetApp.open(files.next());
+        }
+      } catch (searchErr) {}
+    }
+
+    if (!spreadsheet) {
+      try {
+        spreadsheet = SpreadsheetApp.create("InnoHack-26 Registrations");
+        Logger.log("Auto-created Google Sheet: " + spreadsheet.getUrl());
+      } catch (createErr) {
+        Logger.log("Create sheet error: " + createErr);
       }
     }
 
     if (!spreadsheet) {
-      throw new Error("Could not connect to Google Sheet. Please ensure this script is opened via Extensions -> Apps Script in your Google Sheet.");
+      throw new Error("Could not access or create Google Sheet in your Google account.");
     }
 
     // 1. Calculate Amount Paid (₹500 per head)
