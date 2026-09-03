@@ -392,7 +392,7 @@ export default function Register() {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => setLocation(`/food-token?token=${encodeURIComponent(referenceCode)}&ref=${encodeURIComponent(referenceCode)}&team=true`)}
+                onClick={() => setLocation(`/food-token?token=${encodeURIComponent(referenceCode!)}&ref=${encodeURIComponent(referenceCode!)}&team=true`)}
                 style={{ background: "rgba(33,153,255,0.1)", borderColor: "#2199ff", color: "#ffffff", fontSize: "11px" }}
               >
                 <QrCode size={13} style={{ marginRight: "5px" }} /> VIEW TEAM QR PASS
