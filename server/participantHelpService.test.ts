@@ -21,6 +21,6 @@ describe("portable participant-help provider", () => {
     const result = await answerParticipantQuestion("What is the registration fee?");
     expect(result.provider).toBe("fallback");
     expect(result.answer).toMatch(/₹500/);
-    expect(result.answer).toMatch(/verified coordinator call action/);
+    expect(result.answer).toMatch(/coordinators|WhatsApp/i);
   });
 });

@@ -43,6 +43,6 @@ describe("participant help assistant", () => {
     const result = await answerParticipantQuestion("Where can I find travel instructions?");
     expect(result.provider).toBe("fallback");
     expect(result.answer).toMatch(/Erode Sengunthar Engineering College|Thudupathi|Perundurai/i);
-    expect(result.answer).toMatch(/verified coordinator call action/);
+    expect(result.answer).toMatch(/coordinators|WhatsApp/i);
   });
 });

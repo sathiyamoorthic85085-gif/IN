@@ -20,11 +20,21 @@ export function extractParticipantHelpText(content: unknown): string {
 }
 
 function retrievalFallback(question: string) {
-  const guidance = retrieveEventKnowledge(question)
-    .slice(0, 2)
-    .map((chunk) => chunk.text)
-    .join("\n\n");
-  return `${guidance}\n\nFor final organiser confirmation, please use the verified coordinator call action or email innohack26@gmail.com.`;
+  const chunks = retrieveEventKnowledge(question, 3);
+  if (chunks.length === 0) {
+    return "For any questions regarding InnoHack-26, registration, domains, or venue details, please reach out to our team at innohack26@gmail.com or call our Tech Lead Sathiyamoorthi C. at +91 7708914279.";
+  }
+
+  const primary = chunks[0];
+  const secondary = chunks.slice(1);
+
+  let response = primary.text;
+  if (secondary.length > 0) {
+    response += "\n\n" + secondary.map((c) => `• ${c.text}`).join("\n\n");
+  }
+
+  response += "\n\n💡 *For instant help, call the coordinators above or message in the official WhatsApp community.*";
+  return response;
 }
 
 export function isKimiConfigured(env: Record<string, string | undefined> = process.env): boolean {

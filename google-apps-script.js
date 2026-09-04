@@ -106,7 +106,12 @@ function doGet(e) {
     return handleHeadCount();
   }
 
-  // 4. Registration data via GET query
+  // 4. AI Chatbot Help direct API
+  if (action === "ai" || action === "help" || action === "chat") {
+    return handleAiHelpQuery(param.q || param.message || param.query || "");
+  }
+
+  // 5. Registration data via GET query
   if (param.registration || param.referenceCode) {
     return processRegistration(param);
   }
@@ -365,7 +370,7 @@ function sendConfirmationGmail(reg, memberNames, amountPaid) {
   var subject = "🎉 InnoHack-26 Registration Confirmed | Ref: " + refCode + " (Squad: " + (reg.teamName || "Your Squad") + ")";
 
   var passUrl = SITE_URL + "/food-token?token=" + encodeURIComponent(refCode) + "&ref=" + encodeURIComponent(refCode) + "&team=true";
-  var qrImage = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(passUrl) + "&color=07111d&bgcolor=ffffff&qzone=1";
+  var qrImage = SITE_URL + "/api/qr?token=" + encodeURIComponent(refCode) + "&ref=" + encodeURIComponent(refCode) + "&team=true&format=png&size=300";
 
   var passesHtml = '<div style="margin-bottom: 20px; border: 2px solid #2199ff; border-radius: 12px; background: #0b1a38; overflow: hidden;">' +
     '<div style="padding: 12px 18px; background: #102d5d; border-bottom: 1px solid rgba(98,185,255,0.3); text-align: center;">' +
@@ -810,5 +815,73 @@ function resolveSpreadsheet() {
     } catch (e) {}
   }
   return spreadsheet;
+}
+
+/**
+ * Direct AI Assistant API: Answer participant questions based on complete InnoHack-26 knowledge
+ */
+function handleAiHelpQuery(question) {
+  var q = String(question || "").toLowerCase().trim();
+  
+  if (!q) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      answer: "Welcome to InnoHack-26 AI Helpdesk! Ask me about registration fees, event venue, food schedule, bus transport, or whom to contact for Robotics, Mechanical, or EIE queries."
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // 1. Robotics coordinators query
+  if (q.indexOf("robot") > -1 || q.indexOf("drone") > -1 || q.indexOf("jayamanikandan") > -1 || q.indexOf("harish") > -1 || q.indexOf("ros") > -1 || q.indexOf("sensor") > -1) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      answer: "🤖 **Robotics & Automation Coordinators:**\n\n• **Jayamanikandan P** (Student Coordinator, 3rd Year Robotics): 📞 **+91 99433 71076** | ✉️ jayamanijayamani43@gmail.com\n• **Harish Gopal** (Student Coordinator, 3rd Year Robotics): 📞 **+91 8300191535** | ✉️ abdharishgopal@gmail.com\n\nContact them for Robotics track rules, drone hardware, sensor interfacing, and kit approvals."
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // 2. Mechanical coordinators query
+  if (q.indexOf("mech") > -1 || q.indexOf("samuel") > -1 || q.indexOf("naveen") > -1 || q.indexOf("cad") > -1 || q.indexOf("fabricat") > -1 || q.indexOf("3d") > -1 || q.indexOf("workshop") > -1) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      answer: "⚙️ **Mechanical Engineering Coordinators:**\n\n• **Samuel A** (Student Coordinator, 3rd Year Mech): 📞 **+91 9342683393** | ✉️ samandrew8464@gmail.com\n• **Naveen V** (Student Coordinator, 3rd Year Mech): ✉️ naveenvenu2007@gmail.com\n\nContact Samuel A for CAD/CAM prototyping, workshop equipment, 3D printing components, and accommodation."
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // 3. Tech lead, EIE, Faculty, OD, Website query
+  if (q.indexOf("tech") > -1 || q.indexOf("sathiyamoorthi") > -1 || q.indexOf("vinodhini") > -1 || q.indexOf("eie") > -1 || q.indexOf("od") > -1 || q.indexOf("letter") > -1 || q.indexOf("approval") > -1 || q.indexOf("website") > -1 || q.indexOf("pass") > -1 || q.indexOf("qr") > -1) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      answer: "💻 **Tech & Event Coordinators:**\n\n• **Sathiyamoorthi C.** (Tech Lead & EIE Coordinator): 📞 **+91 7708914279** (Website issues, QR food passes, registrations, Software build track)\n• **Mrs. Vinodhini C.** (Faculty Coordinator, A/P EIE): 📞 **+91 6382249016** (Faculty approvals, official college OD letters)\n• **Abhi Ruban** (Event Lead)\n\nEmail: innohack26@gmail.com"
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // 4. Registration fee query
+  if (q.indexOf("fee") > -1 || q.indexOf("cost") > -1 || q.indexOf("price") > -1 || q.indexOf("amount") > -1 || q.indexOf("500") > -1 || q.indexOf("register") > -1 || q.indexOf("squad") > -1) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      answer: "🎟️ **InnoHack-26 Registration Fee (₹500 / Head):**\n\n• **1 Participant (Solo Leader):** ₹500\n• **2 Participants (Leader + 1 Member):** ₹1,000\n• **3 Participants (Leader + 2 Members):** ₹1,500\n• **4 Participants (Leader + 3 Members):** ₹2,000\n• **5 Participants (Leader + 4 Members):** ₹2,500\n• **6 Participants (Leader + 5 Members):** ₹3,000\n\nIncludes 24-hour sprint access, certificate, and all 6 meals & refreshments."
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // 5. Food & refreshments query
+  if (q.indexOf("food") > -1 || q.indexOf("meal") > -1 || q.indexOf("dinner") > -1 || q.indexOf("breakfast") > -1 || q.indexOf("snacks") > -1 || q.indexOf("eat") > -1 || q.indexOf("cater") > -1) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      answer: "🍽️ **Included Meal & Refreshment Schedule (All 6 Included):**\n\n1. **24th Sep 10:30 AM:** Morning Welcome Refreshments & Tea\n2. **24th Sep 08:30 PM:** Grand Hackathon Buffet Dinner Feast\n3. **25th Sep 01:00 AM:** Midnight Energy Snacks & Beverages\n4. **25th Sep 07:30 AM:** Day 2 South Indian Breakfast & Coffee\n5. **25th Sep 11:30 AM:** Day 2 Pre-Evaluation Refreshments\n6. **25th Sep 03:30 PM:** Valedictory High Tea & Closing Treats\n\nShow your team digital QR pass at the catering desk for instant food check-off."
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // 6. Transport & Bus routes query
+  if (q.indexOf("bus") > -1 || q.indexOf("transport") > -1 || q.indexOf("travel") > -1 || q.indexOf("pickup") > -1 || q.indexOf("route") > -1 || q.indexOf("tirupur") > -1 || q.indexOf("salem") > -1 || q.indexOf("erode") > -1) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      answer: "🚌 **Free Bus Transport (41 Routes):**\n\nFree college buses operate connecting Salem, Tirupur, Erode Central, Bhavani, Gobichettipalayam, Kangeyam, Kundadam, and surrounding areas to ESEC Campus.\n\n📞 **24x7 Logistics Helpdesk:** 04294-232701"
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // 7. Dates, venue & general query
+  return ContentService.createTextOutput(JSON.stringify({
+    success: true,
+    answer: "🚀 **InnoHack-26 Event Info:**\n\n• **Dates:** 24th & 25th September 2026 (24-Hour Continuous Hackathon)\n• **Venue:** Erode Sengunthar Engineering College, Perundurai, Erode – 638 057\n• **Prize Pool:** ₹50,000 Total Cash Prizes\n• **Coordinators to Call:**\n  - Robotics: Jayamanikandan P (+91 99433 71076) / Harish Gopal (+91 8300191535)\n  - Mechanical: Samuel A (+91 9342683393)\n  - Tech/Registrations: Sathiyamoorthi C. (+91 7708914279)\n  - Faculty Coordinator: Mrs. Vinodhini C. (+91 6382249016)\n• **WhatsApp Community:** https://chat.whatsapp.com/CFnmH4QfqFo3ijpJb76fGe?mode=gi_t"
+  })).setMimeType(ContentService.MimeType.JSON);
 }
 
