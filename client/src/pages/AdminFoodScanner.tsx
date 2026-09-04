@@ -95,6 +95,7 @@ export default function AdminFoodScanner() {
   const [searchInput, setSearchInput] = useState("");
   const [activeMealId, setActiveMealId] = useState<string>("sep24_night_dinner");
   const [currentPass, setCurrentPass] = useState<FoodPassRecord | null>(null);
+  const [currentTeam, setCurrentTeam] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isUpdatingMeal, setIsUpdatingMeal] = useState(false);
 
@@ -151,6 +152,7 @@ export default function AdminFoodScanner() {
     sessionStorage.removeItem("innohack26_organizer_email");
     setOrganizerEmail("");
     setCurrentPass(null);
+    setCurrentTeam([]);
     stopCamera();
     toast.info("Organiser session logged out.");
   };
@@ -164,8 +166,10 @@ export default function AdminFoodScanner() {
       // Parse query if full URL was scanned
       let queryParam = q;
       if (q.includes("token=")) {
-        const url = new URL(q, window.location.origin);
-        queryParam = url.searchParams.get("token") || q;
+        try {
+          const url = new URL(q.startsWith("http") ? q : `https://x.com/${q}`);
+          queryParam = url.searchParams.get("token") || url.searchParams.get("ref") || q;
+        } catch { }
       }
 
       const res = await fetch(`/api/food-token?token=${encodeURIComponent(queryParam)}`);
@@ -175,6 +179,11 @@ export default function AdminFoodScanner() {
       }
       const data = await res.json();
       setCurrentPass(data.pass);
+      if (data.team && data.team.length > 0) {
+        setCurrentTeam(data.team);
+      } else if (data.pass) {
+        setCurrentTeam([data.pass]);
+      }
       setSearchInput("");
       toast.success(`Pass loaded for ${data.pass.memberName} (${data.pass.teamName})`);
     } catch (err) {
@@ -184,8 +193,9 @@ export default function AdminFoodScanner() {
     }
   };
 
-  const handleToggleMeal = async (mealId: string, forceAction?: "redeem" | "undo") => {
-    if (!currentPass) return;
+  const handleToggleMeal = async (mealId: string, forceAction?: "redeem" | "undo", targetTokenId?: string) => {
+    const tokenIdToUpdate = targetTokenId || currentPass?.tokenId;
+    if (!tokenIdToUpdate) return;
 
     setIsUpdatingMeal(true);
     try {
@@ -193,7 +203,7 @@ export default function AdminFoodScanner() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tokenId: currentPass.tokenId,
+          tokenId: tokenIdToUpdate,
           mealId,
           scannedBy: organizerEmail,
           forceAction,
@@ -206,16 +216,34 @@ export default function AdminFoodScanner() {
       }
 
       const data = await res.json();
-      setCurrentPass(data.pass);
+      if (data.pass) {
+        setCurrentPass(data.pass);
+      }
       if (data.headCount) {
         setMetrics(data.headCount);
       }
 
+      // Update current team member status in place
+      setCurrentTeam((prev) =>
+        prev.map((m) => {
+          if (m.tokenId === tokenIdToUpdate) {
+            return {
+              ...m,
+              meals: {
+                ...(m.meals || {}),
+                [mealId]: forceAction === "undo" ? false : true,
+              },
+            };
+          }
+          return m;
+        })
+      );
+
       const mealLabel = MEALS.find((m) => m.id === mealId)?.label || mealId;
-      if (data.action === "redeemed") {
-        toast.success(`✅ ${mealLabel} marked as REDEEMED for ${data.pass.memberName}!`);
-      } else {
+      if (forceAction === "undo" || data.action === "undone") {
         toast.info(`↩️ ${mealLabel} redemption undone.`);
+      } else {
+        toast.success(`✅ ${mealLabel} marked as REDEEMED!`);
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Update failed.");
@@ -296,7 +324,7 @@ export default function AdminFoodScanner() {
   return (
     <main style={{ minHeight: "100vh", background: "#030a1c", color: "#f8fafc", padding: "20px 16px" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-        
+
         {/* Top Navbar */}
         <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px", paddingBottom: "18px", borderBottom: "1px solid rgba(98,185,255,0.2)", marginBottom: "24px" }}>
           <div>
@@ -393,7 +421,7 @@ export default function AdminFoodScanner() {
 
         {/* Scanner & Lookup Workbench */}
         <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "24px", marginBottom: "36px" }}>
-          
+
           {/* Left: Scanner & Manual Lookup Box */}
           <div style={{ background: "#081a3d", border: "1px solid rgba(98,185,255,0.3)", borderRadius: "14px", padding: "20px" }}>
             <h3 style={{ margin: "0 0 12px", color: "#ffffff", fontSize: "16px", fontWeight: 800, textTransform: "uppercase", display: "flex", alignItems: "center", gap: "8px" }}>
@@ -496,7 +524,7 @@ export default function AdminFoodScanner() {
                 <h4 style={{ margin: "0 0 10px", color: "#ffffff", fontSize: "13px", fontWeight: "bold", textTransform: "uppercase" }}>
                   ALL 6 MEAL SLOTS STATUS
                 </h4>
-                <div style={{ display: "grid", gap: "8px" }}>
+                <div style={{ display: "grid", gap: "8px", marginBottom: "16px" }}>
                   {MEALS.map((meal) => {
                     const isRedeemed = Boolean(currentPass.redemptions[meal.id]);
                     return (
@@ -538,6 +566,66 @@ export default function AdminFoodScanner() {
                     );
                   })}
                 </div>
+
+                {/* Squad Members Roster if more than 1 member */}
+                {currentTeam.length > 1 && (
+                  <div style={{ borderTop: "1px solid rgba(98,185,255,0.2)", paddingTop: "14px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                      <span style={{ color: "#ffdc86", fontSize: "11px", fontWeight: "bold", fontFamily: "monospace", textTransform: "uppercase" }}>
+                        SQUAD ROSTER ({currentTeam.length} MEMBERS)
+                      </span>
+                      <span style={{ color: "#94bcf8", fontSize: "11px" }}>
+                        Quick check-off for {MEALS.find(m => m.id === activeMealId)?.label}
+                      </span>
+                    </div>
+                    <div style={{ display: "grid", gap: "6px" }}>
+                      {currentTeam.map((member, idx) => {
+                        const mIsCurrent = member.tokenId === currentPass.tokenId;
+                        const mClaimed = Boolean(member.meals?.[activeMealId]?.claimed || member.meals?.[activeMealId]);
+                        return (
+                          <div
+                            key={member.tokenId || idx}
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              padding: "8px 10px",
+                              background: mIsCurrent ? "rgba(33,153,255,0.18)" : "rgba(4,13,30,0.5)",
+                              border: mIsCurrent ? "1px solid #2199ff" : "1px solid rgba(98,185,255,0.1)",
+                              borderRadius: "6px",
+                              fontSize: "12px",
+                            }}
+                          >
+                            <div>
+                              <strong style={{ color: "#fff" }}>{member.memberName || `Member ${idx + 1}`}</strong>
+                              <span style={{ color: "#94bcf8", fontSize: "10px", marginLeft: "6px" }}>({member.role || `Pass #${idx + 1}`})</span>
+                            </div>
+                            <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                              {mClaimed ? (
+                                <Button size="sm" variant="ghost" onClick={() => handleToggleMeal(activeMealId, "undo", member.tokenId)} style={{ height: "22px", padding: "0 6px", fontSize: "10px", color: "#f87171" }}>
+                                  ✓ Done (Undo)
+                                </Button>
+                              ) : (
+                                <Button size="sm" variant="outline" onClick={() => handleToggleMeal(activeMealId, "redeem", member.tokenId)} style={{ height: "22px", padding: "0 8px", fontSize: "10px", borderColor: "#22c55e", color: "#4ade80" }}>
+                                  Mark
+                                </Button>
+                              )}
+                              {!mIsCurrent && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleSearch(member.tokenId)}
+                                  style={{ background: "none", border: "none", color: "#62b9ff", fontSize: "10px", cursor: "pointer", textDecoration: "underline" }}
+                                >
+                                  View
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div style={{ textAlign: "center", padding: "40px 20px", color: "#6e8dbd" }}>

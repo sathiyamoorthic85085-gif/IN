@@ -1,3 +1,9 @@
+import {
+  lookupFoodPass,
+  toggleMealRedemption,
+  getLiveHeadCountMetrics,
+} from "../server/foodTokenService";
+
 function sendResponse(res: any, status: number, data: any) {
   try {
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -62,72 +68,168 @@ export default async function handler(req: any, res: any) {
     const action = url.searchParams.get("action");
 
     // 1. GET Live Head Count Metrics
-    if (req.method === "GET" && action === "headcount") {
-      const getUrl = new URL(webhookUrl);
-      getUrl.searchParams.set("action", "headcount");
-      const gasRes = await fetch(getUrl.toString());
-      if (gasRes.ok) {
-        const data = await gasRes.json();
-        return sendResponse(res, 200, data);
+    if (req.method === "GET" && (action === "headcount" || action === "metrics")) {
+      try {
+        const getUrl = new URL(webhookUrl);
+        getUrl.searchParams.set("action", "headcount");
+        const gasRes = await fetch(getUrl.toString());
+        if (gasRes.ok) {
+          const data = await gasRes.json();
+          return sendResponse(res, 200, data);
+        }
+      } catch (gasErr) {
+        console.warn("[FoodToken API] Google Apps Script headcount notice:", gasErr);
       }
-      return sendResponse(res, 200, {
-        totalPassesIssued: 0,
-        mealStats: {},
-        status: "fallback"
-      });
+
+      const localMetrics = getLiveHeadCountMetrics();
+      return sendResponse(res, 200, localMetrics);
     }
 
     // 2. GET Token Pass Lookup
     if (req.method === "GET") {
-      const tokenId = url.searchParams.get("token") || url.searchParams.get("ref") || "";
-      if (!tokenId) {
+      let rawToken = (url.searchParams.get("token") || url.searchParams.get("ref") || "").trim();
+      const refParam = (url.searchParams.get("ref") || "").trim();
+      const mParam = parseInt(url.searchParams.get("m") || "1", 10);
+
+      // Extract token if a full URL was passed
+      if (rawToken.includes("token=")) {
+        try {
+          const parsed = new URL(rawToken.startsWith("http") ? rawToken : `https://dummy.com/${rawToken}`);
+          rawToken = parsed.searchParams.get("token") || rawToken;
+        } catch {}
+      }
+
+      if (!rawToken && !refParam) {
         return sendResponse(res, 400, { error: "Pass Token ID or Reference Code is required." });
       }
 
-      const getUrl = new URL(webhookUrl);
-      getUrl.searchParams.set("action", "lookup");
-      getUrl.searchParams.set("token", tokenId);
+      const lookupKey = rawToken || refParam;
 
-      const gasRes = await fetch(getUrl.toString());
-      if (gasRes.ok) {
-        const data = await gasRes.json();
-        if (data.success && (data.pass || data.team)) {
-          return sendResponse(res, 200, { pass: data.pass, team: data.team });
+      // 2a. Try Google Apps Script Backend first
+      try {
+        const getUrl = new URL(webhookUrl);
+        getUrl.searchParams.set("action", "lookup");
+        getUrl.searchParams.set("token", lookupKey);
+
+        const gasRes = await fetch(getUrl.toString());
+        if (gasRes.ok) {
+          const data = await gasRes.json();
+          if (data.success && (data.pass || (data.team && data.team.length > 0))) {
+            let pass = data.pass;
+            const team = data.team || (pass ? [pass] : []);
+
+            if (!pass && team.length > 0) {
+              // Extract matching member or member at index `mParam`
+              const matchingMember = team.find(
+                (m: any) =>
+                  String(m.tokenId || "").toLowerCase() === lookupKey.toLowerCase() ||
+                  String(m.tokenId || "").toLowerCase() === `${lookupKey}-f${mParam}`.toLowerCase()
+              ) || team[mParam - 1] || team[0];
+
+              pass = {
+                tokenId: matchingMember.tokenId,
+                referenceCode: matchingMember.referenceCode || refParam || lookupKey.split("-F")[0],
+                memberIndex: mParam || 1,
+                memberName: matchingMember.memberName || "Squad Member",
+                role: matchingMember.role || "Squad Member",
+                teamName: matchingMember.teamName || "InnoHack Squad",
+                college: matchingMember.college || "Participating College",
+                domain: matchingMember.domain || "Open Innovation",
+                buildType: matchingMember.buildType || "software",
+                email: matchingMember.email || "",
+                phone: matchingMember.phone || "",
+                memberCount: team.length,
+                createdAt: new Date().toISOString(),
+                redemptions: matchingMember.meals || {},
+              };
+            }
+
+            return sendResponse(res, 200, { success: true, pass, team });
+          }
         }
-        return sendResponse(res, 404, { error: data.error || "Food pass not found." });
+      } catch (gasErr) {
+        console.warn("[FoodToken API] Google Apps Script lookup notice:", gasErr);
       }
-      return sendResponse(res, 404, { error: "Food pass not found." });
+
+      // 2b. Fallback: Internal in-memory and database lookup
+      const localPass = await lookupFoodPass({
+        tokenId: rawToken,
+        referenceCode: refParam || rawToken.split("-F")[0],
+        memberIndex: mParam,
+      });
+
+      if (localPass) {
+        return sendResponse(res, 200, {
+          success: true,
+          pass: localPass,
+          team: [localPass],
+          source: "local_cache",
+        });
+      }
+
+      return sendResponse(res, 404, { error: `Food pass "${lookupKey}" not found in event registry.` });
     }
 
     // 3. POST Meal Slot Redemption
     if (req.method === "POST") {
       const body = await getRequestBody(req);
-      const { tokenId, mealId, claimed, scannedBy } = body;
+      const { tokenId, mealId, claimed, scannedBy, forceAction } = body;
 
       if (!tokenId || !mealId) {
         return sendResponse(res, 400, { error: "tokenId and mealId are required." });
       }
 
-      const getUrl = new URL(webhookUrl);
-      getUrl.searchParams.set("action", "redeem");
-      getUrl.searchParams.set("token", tokenId);
-      getUrl.searchParams.set("meal", mealId);
-      getUrl.searchParams.set("claimed", String(claimed !== false));
-      getUrl.searchParams.set("by", scannedBy || "Organizer");
+      // 3a. Update in Google Apps Script
+      try {
+        const getUrl = new URL(webhookUrl);
+        getUrl.searchParams.set("action", "redeem");
+        getUrl.searchParams.set("token", tokenId);
+        getUrl.searchParams.set("meal", mealId);
+        getUrl.searchParams.set("claimed", String(claimed !== false && forceAction !== "undo"));
+        getUrl.searchParams.set("by", scannedBy || "Organizer");
 
-      const gasRes = await fetch(getUrl.toString());
-      if (gasRes.ok) {
-        const data = await gasRes.json();
-        return sendResponse(res, 200, data);
+        const gasRes = await fetch(getUrl.toString());
+        if (gasRes.ok) {
+          const data = await gasRes.json();
+          // Also sync locally
+          try {
+            await toggleMealRedemption({ tokenId, mealId, scannedBy, forceAction });
+          } catch {}
+          return sendResponse(res, 200, data);
+        }
+      } catch (gasErr) {
+        console.warn("[FoodToken API] Google Apps Script redeem notice:", gasErr);
       }
 
-      return sendResponse(res, 200, {
-        success: true,
-        tokenId,
-        mealSlotId: mealId,
-        claimed: claimed !== false,
-        message: "Status updated."
-      });
+      // 3b. Local redemption update fallback
+      try {
+        const localResult = await toggleMealRedemption({
+          tokenId,
+          mealId,
+          scannedBy,
+          forceAction,
+        });
+
+        const headCount = getLiveHeadCountMetrics();
+        return sendResponse(res, 200, {
+          success: true,
+          tokenId,
+          mealSlotId: mealId,
+          claimed: localResult.action === "redeemed",
+          action: localResult.action,
+          pass: localResult.pass,
+          headCount,
+          message: `Status updated to ${localResult.action}.`,
+        });
+      } catch (localErr: any) {
+        return sendResponse(res, 200, {
+          success: true,
+          tokenId,
+          mealSlotId: mealId,
+          claimed: claimed !== false,
+          message: "Status updated.",
+        });
+      }
     }
 
     return sendResponse(res, 405, { error: "Method not allowed" });

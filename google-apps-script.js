@@ -652,8 +652,16 @@ function handleTokenLookup(token) {
     }
 
     if (members.length > 0) {
+      var primaryPass = members[0];
+      for (var p = 0; p < members.length; p++) {
+        if (members[p].tokenId.toLowerCase() === cleanToken.toLowerCase()) {
+          primaryPass = members[p];
+          break;
+        }
+      }
       return ContentService.createTextOutput(JSON.stringify({
         success: true,
+        pass: primaryPass,
         team: members
       })).setMimeType(ContentService.MimeType.JSON);
     }
@@ -699,7 +707,12 @@ function handleMealRedeem(token, mealSlotId, claimed, organizerEmail) {
 
     for (var i = 1; i < data.length; i++) {
       var rowToken = String(data[i][1] || "").trim();
-      if (rowToken.toLowerCase() === cleanToken.toLowerCase() || rowToken.replace(/-/g, "").toLowerCase() === cleanToken.replace(/-/g, "").toLowerCase()) {
+      var rowRef = String(data[i][2] || "").trim();
+      if (
+        rowToken.toLowerCase() === cleanToken.toLowerCase() ||
+        rowToken.replace(/-/g, "").toLowerCase() === cleanToken.replace(/-/g, "").toLowerCase() ||
+        (cleanToken.indexOf("-F") === -1 && (rowRef.toLowerCase() === cleanToken.toLowerCase() || rowRef.replace(/-/g, "").toLowerCase() === cleanToken.replace(/-/g, "").toLowerCase()))
+      ) {
         var rowIndex = i + 1; // 1-indexed
         var nowStr = Utilities.formatDate(new Date(), "Asia/Kolkata", "dd/MM HH:mm");
         var cellVal = claimed ? ("Claimed (" + nowStr + ")") : "Unclaimed";

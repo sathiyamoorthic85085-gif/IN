@@ -45,7 +45,7 @@ export function generateFoodTokens(referenceCode: string, members: string[], sit
     const tokenId = `${referenceCode}-F${memberIndex}`;
     const scanUrl = `${siteUrl.replace(/\/$/, "")}/food-token?token=${encodeURIComponent(tokenId)}&ref=${encodeURIComponent(referenceCode)}&m=${memberIndex}`;
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(scanUrl)}&color=07111d&bgcolor=ffffff&qzone=1`;
-    
+
     return {
       memberIndex,
       memberName,
@@ -62,8 +62,8 @@ export function renderRegistrationEmailHtml(data: RegistrationEmailData): string
   const posterUrl = `${siteUrl}/media/innohack26-brochure-qr-updated_769f8c7b.webp`;
   const whatsappCommunityUrl = "https://chat.whatsapp.com/CFnmH4QfqFo3ijpJb76fGe?mode=gi_t";
 
-  const tokens = data.foodTokens && data.foodTokens.length > 0 
-    ? data.foodTokens 
+  const tokens = data.foodTokens && data.foodTokens.length > 0
+    ? data.foodTokens
     : generateFoodTokens(data.referenceCode, data.members, siteUrl);
 
   const formattedAmount = new Intl.NumberFormat("en-IN", {
@@ -262,7 +262,7 @@ export function renderRegistrationEmailHtml(data: RegistrationEmailData): string
             <tr>
               <td style="padding: 8px 0; color: #94bcf8; font-size: 13px;">Registered Squad Size:</td>
               <td align="right" style="padding: 8px 0; color: #ffffff; font-size: 13px; font-weight: bold;">
-                ${data.memberCount} Participant${data.memberCount > 1 ? "s" : ""}
+                ${data.memberCount} Participant${data.memberCount > 1 ? "s" : ""} (${data.memberCount === 1 ? "1 Team Leader" : `1 Team Leader + ${data.memberCount - 1} Member${data.memberCount - 1 > 1 ? "s" : ""}`})
               </td>
             </tr>
             <tr>
@@ -375,9 +375,9 @@ export function renderRegistrationEmailHtml(data: RegistrationEmailData): string
 export function renderRegistrationEmailText(data: RegistrationEmailData): string {
   const siteUrl = (data.siteUrl || process.env.SITE_URL || "https://innohack26.vercel.app").replace(/\/$/, "");
   const totalFormatted = `₹${data.amountPaid}`;
-  
-  const tokens = data.foodTokens && data.foodTokens.length > 0 
-    ? data.foodTokens 
+
+  const tokens = data.foodTokens && data.foodTokens.length > 0
+    ? data.foodTokens
     : generateFoodTokens(data.referenceCode, data.members, siteUrl);
 
   const passesText = tokens
@@ -415,7 +415,7 @@ SQUAD & PAYMENT DETAILS:
 - College: ${data.college}
 - Innovation Domain: ${data.domain}
 - Build Track: ${data.buildType.toUpperCase()} BUILD
-- Squad Size: ${data.memberCount} Participants (${data.members.join(", ")})
+- Squad Size: ${data.memberCount} Participants (${data.memberCount === 1 ? "1 Team Leader" : `1 Team Leader + ${data.memberCount - 1} Member(s)`} — ${data.members.join(", ")})
 - Fee Rate: ₹500 / participant
 - Total Fee Calculation: ${data.memberCount} × ₹500 = ${totalFormatted}
 - Transaction ID / UTR: ${data.transactionId}

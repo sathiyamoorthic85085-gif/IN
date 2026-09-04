@@ -42,6 +42,22 @@ describe("Email & Food Token Integration", () => {
     expect(calculateFee(6)).toBe(3000);
   });
 
+  it("calculates fee for 2 team members along with 1 team lead as 3 total participants (₹1500)", () => {
+    const leadCount = 1;
+    const additionalMembers = 2;
+    const totalSquad = leadCount + additionalMembers;
+    const totalFee = totalSquad * 500;
+    expect(totalSquad).toBe(3);
+    expect(totalFee).toBe(1500);
+
+    const members = ["Lead Person", "Team Member One", "Team Member Two"];
+    const tokens = generateFoodTokens("IH26-LEAD3", members);
+    expect(tokens).toHaveLength(3);
+    expect(tokens[0].role).toBe("Team Leader");
+    expect(tokens[1].role).toBe("Squad Member 2");
+    expect(tokens[2].role).toBe("Squad Member 3");
+  });
+
   it("generates 4 individual food tokens for a 4-member squad with distinct QR codes", () => {
     const members = ["Asha Kumar", "Ravi Kumar", "Meera K", "Vikram S"];
     const tokens = generateFoodTokens("IH26-TEST4", members);

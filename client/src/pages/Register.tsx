@@ -1,6 +1,6 @@
-import { type ChangeEvent, type DragEvent, type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type ChangeEvent, type DragEvent, type FormEvent, useEffect, useState, useRef } from "react";
 import { useLocation } from "wouter";
-import { ArrowLeft, CheckCircle2, CreditCard, ImageIcon, LockKeyhole, Mail, QrCode, ShieldCheck, UploadCloud, Utensils, X } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CreditCard, LockKeyhole, Mail, QrCode, ShieldCheck, UploadCloud, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { eventAssets } from "@/lib/eventAssets";
@@ -118,7 +118,7 @@ export default function Register() {
     email: "",
     phone: "",
     college: "",
-    memberCount: "2",
+    memberCount: "3",
     memberOne: "",
     memberTwo: "",
     memberThree: "",
@@ -144,22 +144,16 @@ export default function Register() {
   }, []);
 
   const memberCount = Number(form.memberCount);
-  const requiredMembers = useMemo<
-    Array<"memberOne" | "memberTwo" | "memberThree" | "memberFour" | "memberFive" | "memberSix">
-  >(() => {
-    const members: Array<"memberOne" | "memberTwo" | "memberThree" | "memberFour" | "memberFive" | "memberSix"> = [
-      "memberOne",
-    ];
-    if (memberCount >= 2) members.push("memberTwo");
-    if (memberCount >= 3) members.push("memberThree");
-    if (memberCount >= 4) members.push("memberFour");
-    if (memberCount >= 5) members.push("memberFive");
-    if (memberCount === 6) members.push("memberSix");
-    return members;
-  }, [memberCount]);
 
-  const update = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
-    setForm((current) => ({ ...current, [key]: value }));
+  const update = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => {
+    setForm((current) => {
+      const next = { ...current, [key]: value };
+      if (key === "leadName" && (!current.memberOne || current.memberOne === current.leadName)) {
+        next.memberOne = value as string;
+      }
+      return next;
+    });
+  };
 
   const handlePhotoSelect = async (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -209,8 +203,17 @@ export default function Register() {
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!form.consent) return toast.error("Please confirm the registration and payment details.");
-    if (requiredMembers.some((member) => !form[member]?.trim())) {
-      return toast.error("Enter every squad member name for the selected squad size.");
+
+    const effectiveMemberOne = form.memberOne.trim() || form.leadName.trim();
+    const requiredNames: string[] = [effectiveMemberOne];
+    if (memberCount >= 2) requiredNames.push(form.memberTwo?.trim() || "");
+    if (memberCount >= 3) requiredNames.push(form.memberThree?.trim() || "");
+    if (memberCount >= 4) requiredNames.push(form.memberFour?.trim() || "");
+    if (memberCount >= 5) requiredNames.push(form.memberFive?.trim() || "");
+    if (memberCount === 6) requiredNames.push(form.memberSix?.trim() || "");
+
+    if (requiredNames.some((name) => !name)) {
+      return toast.error(`Enter every squad member name for the selected squad size (1 Team Lead + ${memberCount - 1} Member${memberCount - 1 > 1 ? "s" : ""}).`);
     }
 
     const payload = {
@@ -219,7 +222,7 @@ export default function Register() {
       email: form.email,
       phone: form.phone,
       college: form.college,
-      memberOne: form.memberOne,
+      memberOne: effectiveMemberOne,
       memberTwo: memberCount >= 2 ? form.memberTwo || undefined : undefined,
       memberThree: memberCount >= 3 ? form.memberThree || undefined : undefined,
       memberFour: memberCount >= 4 ? form.memberFour || undefined : undefined,
@@ -266,7 +269,7 @@ export default function Register() {
         getUrl.searchParams.set("phone", form.phone);
         getUrl.searchParams.set("college", form.college);
         getUrl.searchParams.set("memberCount", String(memberCount));
-        getUrl.searchParams.set("memberOne", form.memberOne);
+        getUrl.searchParams.set("memberOne", effectiveMemberOne);
         if (form.memberTwo) getUrl.searchParams.set("memberTwo", form.memberTwo);
         if (form.memberThree) getUrl.searchParams.set("memberThree", form.memberThree);
         if (form.memberFour) getUrl.searchParams.set("memberFour", form.memberFour);
@@ -279,7 +282,6 @@ export default function Register() {
 
         await fetch(getUrl.toString(), { mode: "no-cors" }).catch(() => {});
       } catch {}
-
 
       setReferenceCode(finalRefCode);
       sessionStorage.setItem(
@@ -311,7 +313,7 @@ export default function Register() {
         getUrl.searchParams.set("phone", form.phone);
         getUrl.searchParams.set("college", form.college);
         getUrl.searchParams.set("memberCount", String(memberCount));
-        getUrl.searchParams.set("memberOne", form.memberOne);
+        getUrl.searchParams.set("memberOne", effectiveMemberOne);
         if (form.memberTwo) getUrl.searchParams.set("memberTwo", form.memberTwo);
         if (form.memberThree) getUrl.searchParams.set("memberThree", form.memberThree);
         if (form.memberFour) getUrl.searchParams.set("memberFour", form.memberFour);
@@ -324,7 +326,6 @@ export default function Register() {
 
         await fetch(getUrl.toString(), { mode: "no-cors" }).catch(() => {});
       } catch {}
-
 
       setReferenceCode(finalRefCode);
       sessionStorage.setItem(
@@ -370,7 +371,7 @@ export default function Register() {
                 AUTOMATIC GMAIL CONFIRMATION DISPATCHED
               </b>
               <span style={{ color: "#c9ddff", fontSize: "13px", lineHeight: "1.5", display: "block", marginTop: "4px" }}>
-                A confirmation email with your official event poster cover, Reference Code <strong>{referenceCode}</strong>, and receipt of <strong>₹{totalAmount}</strong> ({memberCount} members × ₹500) has been sent to <strong style={{ color: "#ffffff" }}>{form.email}</strong>.
+                A confirmation email with your official event poster cover, Reference Code <strong>{referenceCode}</strong>, and receipt of <strong>₹{totalAmount}</strong> ({memberCount === 1 ? "1 Team Leader" : `1 Team Leader + ${memberCount - 1} Member${memberCount - 1 > 1 ? "s" : ""}`} = {memberCount} participants × ₹500) has been sent to <strong style={{ color: "#ffffff" }}>{form.email}</strong>.
               </span>
             </div>
           </div>
@@ -382,7 +383,7 @@ export default function Register() {
                 <QrCode size={15} /> OFFICIAL TEAM QR CODE ISSUED
               </span>
               <span style={{ color: "#4ade80", fontFamily: "monospace", fontSize: "11px", fontWeight: "bold" }}>
-                INCLUDES {memberCount} MEMBERS
+                INCLUDES {memberCount} SQUAD PARTICIPANTS ({memberCount === 1 ? "1 LEAD" : `1 LEAD + ${memberCount - 1} MEMBERS`})
               </span>
             </div>
             <p style={{ color: "#94bcf8", fontSize: "12px", margin: "0 0 10px", lineHeight: "1.4" }}>
@@ -524,17 +525,17 @@ export default function Register() {
               />
             </label>
             <label>
-              TOTAL SQUAD SIZE (UP TO 6 MEMBERS)
+              TOTAL SQUAD SIZE (LEAD + MEMBERS)
               <select
                 value={form.memberCount}
                 onChange={(event) => update("memberCount", event.target.value)}
               >
-                <option value="1">1 Member (Individual / Team Lead only)</option>
-                <option value="2">2 Members (Team Lead + 1 Member)</option>
-                <option value="3">3 Members (Team Lead + 2 Members)</option>
-                <option value="4">4 Members (Team Lead + 3 Members)</option>
-                <option value="5">5 Members (Team Lead + 4 Members)</option>
-                <option value="6">6 Members (Team Lead + 5 Members)</option>
+                <option value="1">1 Participant: Team Leader only (Solo Squad) — ₹500</option>
+                <option value="2">2 Participants: Team Leader + 1 Team Member — ₹1,000</option>
+                <option value="3">3 Participants: Team Leader + 2 Team Members — ₹1,500</option>
+                <option value="4">4 Participants: Team Leader + 3 Team Members — ₹2,000</option>
+                <option value="5">5 Participants: Team Leader + 4 Team Members — ₹2,500</option>
+                <option value="6">6 Participants: Team Leader + 5 Team Members — ₹3,000</option>
               </select>
             </label>
             <label>
@@ -551,22 +552,22 @@ export default function Register() {
               </select>
             </label>
             <label>
-              MEMBER 1 (TEAM LEAD)
+              MEMBER 1 (TEAM LEADER)
               <input
                 required
                 maxLength={120}
-                placeholder="Full name of Member 1"
-                value={form.memberOne}
+                placeholder="Full name of Team Leader"
+                value={form.memberOne || form.leadName}
                 onChange={(event) => update("memberOne", event.target.value)}
               />
             </label>
             {memberCount >= 2 && (
               <label>
-                MEMBER 2 NAME
+                MEMBER 2 (TEAM MEMBER 1)
                 <input
                   required
                   maxLength={120}
-                  placeholder="Full name of Member 2"
+                  placeholder="Full name of Team Member 1"
                   value={form.memberTwo}
                   onChange={(event) => update("memberTwo", event.target.value)}
                 />
@@ -574,11 +575,11 @@ export default function Register() {
             )}
             {memberCount >= 3 && (
               <label>
-                MEMBER 3 NAME
+                MEMBER 3 (TEAM MEMBER 2)
                 <input
                   required
                   maxLength={120}
-                  placeholder="Full name of Member 3"
+                  placeholder="Full name of Team Member 2"
                   value={form.memberThree}
                   onChange={(event) => update("memberThree", event.target.value)}
                 />
@@ -586,11 +587,11 @@ export default function Register() {
             )}
             {memberCount >= 4 && (
               <label>
-                MEMBER 4 NAME
+                MEMBER 4 (TEAM MEMBER 3)
                 <input
                   required
                   maxLength={120}
-                  placeholder="Full name of Member 4"
+                  placeholder="Full name of Team Member 3"
                   value={form.memberFour}
                   onChange={(event) => update("memberFour", event.target.value)}
                 />
@@ -598,11 +599,11 @@ export default function Register() {
             )}
             {memberCount >= 5 && (
               <label>
-                MEMBER 5 NAME
+                MEMBER 5 (TEAM MEMBER 4)
                 <input
                   required
                   maxLength={120}
-                  placeholder="Full name of Member 5"
+                  placeholder="Full name of Team Member 4"
                   value={form.memberFive}
                   onChange={(event) => update("memberFive", event.target.value)}
                 />
@@ -610,11 +611,11 @@ export default function Register() {
             )}
             {memberCount === 6 && (
               <label>
-                MEMBER 6 NAME
+                MEMBER 6 (TEAM MEMBER 5)
                 <input
                   required
                   maxLength={120}
-                  placeholder="Full name of Member 6"
+                  placeholder="Full name of Team Member 5"
                   value={form.memberSix}
                   onChange={(event) => update("memberSix", event.target.value)}
                 />
@@ -649,10 +650,10 @@ export default function Register() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
               <div>
                 <span style={{ color: "#ffdc86", fontSize: "11px", fontWeight: "bold", fontFamily: "monospace", letterSpacing: "1.5px" }}>
-                  FEE CALCULATION
+                  FEE CALCULATION (₹500 / HEAD)
                 </span>
                 <div style={{ color: "#ffffff", fontSize: "20px", fontWeight: 900, marginTop: "2px" }}>
-                  {memberCount} Member{memberCount > 1 ? "s" : ""} × ₹500 = <span style={{ color: "#4ade80" }}>₹{memberCount * 500} Total</span>
+                  {memberCount === 1 ? "1 Team Leader" : `1 Team Leader + ${memberCount - 1} Member${memberCount - 1 > 1 ? "s" : ""}`} ({memberCount} Total) × ₹500 = <span style={{ color: "#4ade80" }}>₹{memberCount * 500} Total</span>
                 </div>
               </div>
               <div style={{ background: "rgba(33,153,255,0.2)", border: "1px solid #2199ff", borderRadius: "8px", padding: "6px 12px", color: "#90c8ff", fontSize: "12px", fontWeight: "bold" }}>
@@ -660,7 +661,7 @@ export default function Register() {
               </div>
             </div>
             <p style={{ margin: "8px 0 0", color: "#c0d4f8", fontSize: "12px" }}>
-              Pay exactly <strong style={{ color: "#4ade80" }}>₹{memberCount * 500}</strong> via UPI below.
+              Pay exactly <strong style={{ color: "#4ade80" }}>₹{memberCount * 500}</strong> via UPI below ({memberCount} participant{memberCount > 1 ? "s" : ""}: 1 Team Leader + {Math.max(0, memberCount - 1)} Member{memberCount - 1 === 1 ? "" : "s"}).
             </p>
           </div>
 
@@ -669,7 +670,7 @@ export default function Register() {
               <p className="eyebrow">OFFICIAL UPI</p>
               <h2>SCAN &amp; PAY <i>₹{memberCount * 500}.</i></h2>
               <p>
-                Scan and pay <strong>₹{memberCount * 500}</strong>. Upload screenshot below.
+                Scan and pay <strong>₹{memberCount * 500}</strong> for {memberCount} squad participant{memberCount > 1 ? "s" : ""} (1 Team Leader + {Math.max(0, memberCount - 1)} Member{memberCount - 1 === 1 ? "" : "s"}). Upload screenshot below.
               </p>
             </div>
             <figure className="qr-single-figure">
