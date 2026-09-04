@@ -20,7 +20,8 @@ export const eventAssets = {
   team: {
     sathiyamoorthi: "/media/sathiyamoorthi-c-eie-tech-lead-v2_117a6adf.png",
     abhiRuban: "/media/abhi-ruban-eie-event-lead_c19bb0b4.jpeg",
-    roboticsLead: "/media/innohack26-robotics-team-lead_0bacd821.png",
+    roboticsLead: "/media/jayamanikandan-p-robotics-student-coordinator.jpg",
+    jayamanikandan: "/media/jayamanikandan-p-robotics-student-coordinator.jpg",
   },
   leadership: {
     mechHod: "/media/innohack26-mech-hod.jpg",

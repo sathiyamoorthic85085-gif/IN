@@ -406,9 +406,9 @@ button { font-family: inherit; }
 /* Team-linked hierarchy controls: only verified call paths navigate; profile icons are organiser-safe placeholders until individual URLs are supplied. */
 .team-command-pyramid { margin-top: 34px; }
 .profile-icon-actions { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; }
-.profile-icon-actions button { display: grid; place-items: center; width: 27px; height: 27px; padding: 0; border: 1px solid rgba(98,185,255,.38); color: #9ed6ff; background: rgba(22,141,255,.08); cursor: pointer; transition: transform .16s cubic-bezier(.23,1,.32,1), color .16s ease, border-color .16s ease, background .16s ease; }
-.profile-icon-actions button:hover, .profile-icon-actions button:focus-visible { color: #ffe6a6; border-color: rgba(216,179,106,.82); background: rgba(216,179,106,.13); outline: none; transform: translateY(-2px); }
-.profile-icon-actions button:active { transform: scale(.96); }
+.profile-icon-actions button, .profile-icon-actions a { display: grid; place-items: center; width: 27px; height: 27px; padding: 0; border: 1px solid rgba(98,185,255,.38); color: #9ed6ff; background: rgba(22,141,255,.08); text-decoration: none; cursor: pointer; transition: transform .16s cubic-bezier(.23,1,.32,1), color .16s ease, border-color .16s ease, background .16s ease; }
+.profile-icon-actions button:hover, .profile-icon-actions button:focus-visible, .profile-icon-actions a:hover, .profile-icon-actions a:focus-visible { color: #ffe6a6; border-color: rgba(216,179,106,.82); background: rgba(216,179,106,.13); outline: none; transform: translateY(-2px); }
+.profile-icon-actions button:active, .profile-icon-actions a:active { transform: scale(.96); }
 .pyramid-hod .profile-icon-actions { justify-content: center; }
 .pyramid-faculty .profile-icon-actions { grid-column: 1 / -1; margin: -2px 0 0; }
 .pyramid-direct-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; width: min(100%, 650px); margin-top: 18px; }

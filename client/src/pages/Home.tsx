@@ -88,11 +88,18 @@ const leadershipDepartments = [
     hod: { name: "HEAD OF DEPARTMENT", detail: "ROBOTICS & AUTOMATION", image: eventAssets.leadership.roboticsHod },
     faculty: { name: "FACULTY COORDINATOR", detail: "ROBOTICS & AUTOMATION", image: eventAssets.leadership.roboticsFacultyCoordinator },
     student: {
-      name: "Sanjeev S.",
-      detail: "TEAM LEAD · FINAL YEAR",
-      phone: "9080861148",
+      name: "Jayamanikandan P",
+      detail: "STUDENT COORDINATOR · 3RD YEAR",
       profiles: [
-        { name: "Sanjeev S.", role: "STUDENT COORDINATOR", year: "FINAL YEAR · ROBOTICS", phone: "9080861148", image: eventAssets.team.roboticsLead },
+        {
+          name: "Jayamanikandan P",
+          role: "STUDENT COORDINATOR",
+          year: "3RD YEAR · ROBOTICS",
+          image: eventAssets.team.roboticsLead,
+          instagram: "https://www.instagram.com/jayamani_k_i_n_g?igsi=Y3lsMno3ZXkzamNk",
+          email: "jayamanijayamani43@gmail.com",
+          linkedin: "https://www.linkedin.com/in/jayamanikandan-p-4b6627427?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+        },
       ],
     },
   },
@@ -140,18 +147,76 @@ function downloadGuidelines() {
   toast.success("InnoHack-26 participant guidelines opened in a new tab.");
 }
 
-function ProfileLinkPlaceholders({ label, size = 12 }: { label: string; size?: number }) {
+function ProfileLinkPlaceholders({
+  label,
+  size = 12,
+  instagram,
+  email,
+  linkedin,
+}: {
+  label: string;
+  size?: number;
+  instagram?: string;
+  email?: string;
+  linkedin?: string;
+}) {
   return (
-    <div className="profile-icon-actions leadership-profile-links" aria-label={`${label} profile links awaiting organiser details`}>
-      <button type="button" aria-label={`${label} Instagram profile awaiting organiser details`} onClick={() => toast.info(`${label} Instagram profile is awaiting organiser details.`)}>
-        <Instagram size={size} />
-      </button>
-      <button type="button" aria-label={`${label} email profile awaiting organiser details`} onClick={() => toast.info(`${label} email profile is awaiting organiser details.`)}>
-        <Mail size={size} />
-      </button>
-      <button type="button" aria-label={`${label} LinkedIn profile awaiting organiser details`} onClick={() => toast.info(`${label} LinkedIn profile is awaiting organiser details.`)}>
-        <Linkedin size={size} />
-      </button>
+    <div className="profile-icon-actions leadership-profile-links" aria-label={`${label} profile links`}>
+      {instagram ? (
+        <a
+          href={instagram}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`${label} Instagram profile`}
+          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+        >
+          <Instagram size={size} />
+        </a>
+      ) : (
+        <button
+          type="button"
+          aria-label={`${label} Instagram profile awaiting organiser details`}
+          onClick={() => toast.info(`${label} Instagram profile is awaiting organiser details.`)}
+        >
+          <Instagram size={size} />
+        </button>
+      )}
+      {email ? (
+        <a
+          href={`mailto:${email}`}
+          aria-label={`Email ${label}`}
+          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+        >
+          <Mail size={size} />
+        </a>
+      ) : (
+        <button
+          type="button"
+          aria-label={`${label} email profile awaiting organiser details`}
+          onClick={() => toast.info(`${label} email profile is awaiting organiser details.`)}
+        >
+          <Mail size={size} />
+        </button>
+      )}
+      {linkedin ? (
+        <a
+          href={linkedin}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`${label} LinkedIn profile`}
+          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+        >
+          <Linkedin size={size} />
+        </a>
+      ) : (
+        <button
+          type="button"
+          aria-label={`${label} LinkedIn profile awaiting organiser details`}
+          onClick={() => toast.info(`${label} LinkedIn profile is awaiting organiser details.`)}
+        >
+          <Linkedin size={size} />
+        </button>
+      )}
     </div>
   );
 }
@@ -259,7 +324,13 @@ function LeadershipDepartmentCard({ department }: { department: (typeof leadersh
                           <PhoneCall size={10} /> +91 {student.phone}
                         </a>
                       )}
-                      <ProfileLinkPlaceholders label={student.name} size={11} />
+                      <ProfileLinkPlaceholders
+                        label={student.name}
+                        size={11}
+                        instagram={"instagram" in student ? (student.instagram as string) : undefined}
+                        email={"email" in student ? (student.email as string) : undefined}
+                        linkedin={"linkedin" in student ? (student.linkedin as string) : undefined}
+                      />
                     </div>
                   </article>
                 );
