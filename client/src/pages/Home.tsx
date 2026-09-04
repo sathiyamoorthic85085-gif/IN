@@ -77,8 +77,18 @@ const leadershipDepartments = [
     student: {
       name: "MECHANICAL STUDENT COORDINATORS",
       detail: "SAMUEL A · NAVEEN V · 3RD YEAR",
+      phone: "9342683393",
       profiles: [
-        { name: "Samuel A", role: "STUDENT COORDINATOR", year: "3RD YEAR · MECH", image: eventAssets.leadership.samuelA },
+        {
+          name: "Samuel A",
+          role: "STUDENT COORDINATOR",
+          year: "3RD YEAR · MECH",
+          phone: "9342683393",
+          image: eventAssets.leadership.samuelA,
+          instagram: "https://www.instagram.com/marvellous_vision07?igsh=MTJyM2o4cjcxaGF3bg==&igsi=MTJyM2o4cjcxaGF3bg==",
+          email: "samandrew8464@gmail.com",
+          linkedin: "https://www.linkedin.com/public-profile/settings/",
+        },
         { name: "Naveen V", role: "STUDENT COORDINATOR", year: "3RD YEAR · MECH", image: eventAssets.leadership.naveenV },
       ],
     },
