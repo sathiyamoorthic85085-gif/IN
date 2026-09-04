@@ -30,12 +30,13 @@ export interface RegistrationEmailData {
 }
 
 export const MEAL_SCHEDULE = [
-  { id: "sep24_mrng_snacks", label: "24th Sep Morning Snacks", icon: "☕", type: "snacks", time: "09:00 AM", desc: "Welcome Refreshments & Tea" },
-  { id: "sep24_night_dinner", label: "24th Sep Night Dinner", icon: "🍽️", type: "food", time: "08:30 PM", desc: "Main Hackathon Feast" },
-  { id: "sep24_night_snacks", label: "24th Sep Night Snacks", icon: "🌙", type: "snacks", time: "01:00 AM", desc: "Midnight Energy Boost" },
-  { id: "sep25_mrng_bfast", label: "25th Sep Morning Breakfast", icon: "🌅", type: "food", time: "07:30 AM", desc: "Main Day 2 Breakfast" },
-  { id: "sep25_mrng_snacks", label: "25th Sep Morning Snacks", icon: "☕", type: "snacks", time: "11:00 AM", desc: "Day 2 Morning Refreshments" },
-  { id: "sep25_aft_snacks", label: "25th Sep Afternoon Snacks", icon: "🥪", type: "snacks", time: "03:30 PM", desc: "Valedictory High Tea" },
+  { id: "sep24_mrng_snacks", label: "24th Sep Morning Snacks", icon: "☕", type: "snacks", time: "10:30 AM", desc: "Welcome Refreshments & Tea (Snacks 1/5)" },
+  { id: "sep24_eve_snacks", label: "24th Sep Evening Snacks", icon: "🍵", type: "snacks", time: "05:00 PM", desc: "Evening High Tea & Crispy Snacks (Snacks 2/5)" },
+  { id: "sep24_night_dinner", label: "24th Sep Night Dinner", icon: "🍽️", type: "food", time: "08:30 PM", desc: "Grand Hackathon Dinner Feast Buffet (Food 1/2)" },
+  { id: "sep24_night_snacks", label: "25th Sep Midnight Snacks", icon: "🌙", type: "snacks", time: "01:00 AM", desc: "Midnight Energy Boost & Hot Drinks (Snacks 3/5)" },
+  { id: "sep25_mrng_bfast", label: "25th Sep Morning Breakfast", icon: "🌅", type: "food", time: "07:30 AM", desc: "Day 2 South Indian Breakfast & Coffee (Food 2/2)" },
+  { id: "sep25_mrng_snacks", label: "25th Sep Morning Snacks", icon: "☕", type: "snacks", time: "11:30 AM", desc: "Day 2 Pre-Evaluation Refreshments (Snacks 4/5)" },
+  { id: "sep25_aft_snacks", label: "25th Sep Afternoon Snacks", icon: "🥪", type: "snacks", time: "03:30 PM", desc: "Valedictory High Tea & Celebration Snacks (Snacks 5/5)" },
 ] as const;
 
 export function generateFoodTokens(referenceCode: string, members: string[], siteUrl: string = "https://innohack26.vercel.app"): FoodTokenMember[] {

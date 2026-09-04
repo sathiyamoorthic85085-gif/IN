@@ -44,12 +44,13 @@ interface FoodPassRecord {
 
 const MEALS = [
   { id: "attendance", label: "Event Check-in & Attendance", icon: "🎟️", type: "checkin", time: "Sep 24, 08:30 AM", desc: "Welcome Desk & Squad Kit Verification" },
-  { id: "sep24_mrng_snacks", label: "Day 1 Morning Refreshments", icon: "☕", type: "snacks", time: "Sep 24, 10:30 AM", desc: "Hot Tea / Coffee & Light Snacks" },
-  { id: "sep24_night_dinner", label: "Grand Hackathon Dinner", icon: "🍽️", type: "food", time: "Sep 24, 08:30 PM", desc: "Full Course Buffet Feast (Veg & Non-Veg)" },
-  { id: "sep24_night_snacks", label: "Midnight Sprint Snacks", icon: "🌙", type: "snacks", time: "Sep 25, 01:00 AM", desc: "Energy Drinks, Hot Beverages & Midnight Snacks" },
-  { id: "sep25_mrng_bfast", label: "Day 2 Sprint Breakfast", icon: "🌅", type: "food", time: "Sep 25, 07:30 AM", desc: "Hot South Indian Breakfast & Coffee" },
-  { id: "sep25_mrng_snacks", label: "Day 2 Pitch Refreshments", icon: "☕", type: "snacks", time: "Sep 25, 11:30 AM", desc: "Pre-Evaluation Refreshments & Beverages" },
-  { id: "sep25_aft_snacks", label: "Valedictory High Tea", icon: "🥪", type: "snacks", time: "Sep 25, 03:30 PM", desc: "Closing Ceremony Treats & High Tea" },
+  { id: "sep24_mrng_snacks", label: "Day 1 Morning Refreshments", icon: "☕", type: "snacks", time: "Sep 24, 10:30 AM", desc: "Welcome Tea / Coffee & Snacks (Snacks 1/5)" },
+  { id: "sep24_eve_snacks", label: "Day 1 Evening High Tea", icon: "🍵", type: "snacks", time: "Sep 24, 05:00 PM", desc: "Evening High Tea & Snacks (Snacks 2/5)" },
+  { id: "sep24_night_dinner", label: "Grand Hackathon Dinner", icon: "🍽️", type: "food", time: "Sep 24, 08:30 PM", desc: "Full Course Buffet Dinner Feast (Food 1/2)" },
+  { id: "sep24_night_snacks", label: "Midnight Sprint Snacks", icon: "🌙", type: "snacks", time: "Sep 25, 01:00 AM", desc: "Energy Drinks & Midnight Munchies (Snacks 3/5)" },
+  { id: "sep25_mrng_bfast", label: "Day 2 Sprint Breakfast", icon: "🌅", type: "food", time: "Sep 25, 07:30 AM", desc: "Hot South Indian Breakfast & Coffee (Food 2/2)" },
+  { id: "sep25_mrng_snacks", label: "Day 2 Pitch Refreshments", icon: "☕", type: "snacks", time: "Sep 25, 11:30 AM", desc: "Pre-Evaluation Refreshments & Beverages (Snacks 4/5)" },
+  { id: "sep25_aft_snacks", label: "Valedictory High Tea", icon: "🥪", type: "snacks", time: "Sep 25, 03:30 PM", desc: "Valedictory High Tea & Celebration Treats (Snacks 5/5)" },
 ];
 
 export default function FoodTokenPortal() {

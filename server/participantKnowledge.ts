@@ -38,9 +38,9 @@ export const eventKnowledgeBase: EventKnowledgeChunk[] = [
   },
   {
     id: "food_and_refreshments",
-    title: "Food, Dining & Refreshment Schedule (All 6 Included)",
-    keywords: ["food", "meal", "dinner", "breakfast", "snacks", "tea", "refreshment", "catering", "buffet", "eat", "menu", "pass"],
-    text: "All 6 meals & refreshments are included with registration: 1. Day 1 Morning Welcome Refreshments & Tea (Sep 24, 10:30 AM). 2. Grand Hackathon Dinner Feast Buffet (Sep 24, 08:30 PM). 3. Midnight Energy Snacks & Hot Drinks (Sep 25, 01:00 AM). 4. Day 2 South Indian Breakfast & Coffee (Sep 25, 07:30 AM). 5. Day 2 Pre-Evaluation Refreshments (Sep 25, 11:30 AM). 6. Valedictory High Tea (Sep 25, 03:30 PM). Show your Digital Team QR Pass at the catering desk for instant check-off.",
+    title: "Food, Dining & Refreshment Schedule (2 Times Food + 5 Times Snacks)",
+    keywords: ["food", "meal", "dinner", "breakfast", "snacks", "tea", "refreshment", "catering", "buffet", "eat", "menu", "pass", "2 food", "5 snacks", "7"],
+    text: "All food and refreshments are 100% included with registration (2 Times Main Food Meals + 5 Times Refreshment & Snack Breaks): 1. Day 1 Morning Welcome Refreshments & Tea (Sep 24, 10:30 AM - Snacks 1/5). 2. Day 1 Evening High Tea & Snacks (Sep 24, 05:00 PM - Snacks 2/5). 3. Day 1 Grand Hackathon Dinner Feast Buffet (Sep 24, 08:30 PM - Food 1/2). 4. Midnight Energy Snacks & Hot Drinks (Sep 25, 01:00 AM - Snacks 3/5). 5. Day 2 South Indian Breakfast & Filter Coffee (Sep 25, 07:30 AM - Food 2/2). 6. Day 2 Pre-Evaluation Refreshments (Sep 25, 11:30 AM - Snacks 4/5). 7. Valedictory High Tea & Celebration Treats (Sep 25, 03:30 PM - Snacks 5/5). Show your Digital Team QR Pass at the catering desk for instant check-off.",
   },
   {
     id: "payment",
@@ -99,8 +99,8 @@ Answer the participant's question accurately, concisely, and warmly based on the
 
 Key Rules:
 1. When asked about coordinators or whom to contact, provide the EXACT name, role, phone number, and email.
-2. When asked about registration fees, specify ₹500/head with the exact squad size formula ($1\\text{ Lead} + N\\text{ Members} \\times ₹500$).
-3. When asked about meals, confirm all 6 meals/refreshments are included with the digital QR pass.
+2. When asked about registration fees, specify ₹500/head with the exact squad size formula ($1\text{ Lead} + N\text{ Members} \times ₹500$).
+3. When asked about meals, confirm 2 times main food and 5 times snacks (7 total sessions) are included with the digital QR pass.
 4. Keep answers friendly, crisp (under 180 words), with clear bullet points.
 5. Never ask for banking passwords, OTPs, or UPI PINs.
 

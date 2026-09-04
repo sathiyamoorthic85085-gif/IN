@@ -13,10 +13,11 @@ import {
 } from "./foodTokenService";
 
 describe("Email & Food Token Integration", () => {
-  it("verifies the exact 6 meal and snacks slots specified by the organiser", () => {
+  it("verifies the exact 2 times food and 5 times snacks slots specified by the organiser", () => {
     const mealIds = MEAL_SCHEDULE.map((m) => m.id);
     expect(mealIds).toEqual([
       "sep24_mrng_snacks",
+      "sep24_eve_snacks",
       "sep24_night_dinner",
       "sep24_night_snacks",
       "sep25_mrng_bfast",
@@ -24,12 +25,21 @@ describe("Email & Food Token Integration", () => {
       "sep25_aft_snacks",
     ]);
 
-    expect(MEAL_SCHEDULE.find((m) => m.id === "sep24_night_dinner")?.type).toBe("food");
-    expect(MEAL_SCHEDULE.find((m) => m.id === "sep25_mrng_bfast")?.type).toBe("food");
-    expect(MEAL_SCHEDULE.find((m) => m.id === "sep24_mrng_snacks")?.type).toBe("snacks");
-    expect(MEAL_SCHEDULE.find((m) => m.id === "sep24_night_snacks")?.type).toBe("snacks");
-    expect(MEAL_SCHEDULE.find((m) => m.id === "sep25_mrng_snacks")?.type).toBe("snacks");
-    expect(MEAL_SCHEDULE.find((m) => m.id === "sep25_aft_snacks")?.type).toBe("snacks");
+    // 2 times food (Main Meals)
+    const foodSlots = MEAL_SCHEDULE.filter((m) => m.type === "food");
+    expect(foodSlots).toHaveLength(2);
+    expect(foodSlots.map((m) => m.id)).toEqual(["sep24_night_dinner", "sep25_mrng_bfast"]);
+
+    // 5 times snacks (Refreshment breaks)
+    const snackSlots = MEAL_SCHEDULE.filter((m) => m.type === "snacks");
+    expect(snackSlots).toHaveLength(5);
+    expect(snackSlots.map((m) => m.id)).toEqual([
+      "sep24_mrng_snacks",
+      "sep24_eve_snacks",
+      "sep24_night_snacks",
+      "sep25_mrng_snacks",
+      "sep25_aft_snacks",
+    ]);
   });
 
   it("calculates dynamic registration fee at ₹500 per head accurately", () => {

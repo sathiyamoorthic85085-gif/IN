@@ -387,7 +387,7 @@ export default function Register() {
               </span>
             </div>
             <p style={{ color: "#94bcf8", fontSize: "12px", margin: "0 0 10px", lineHeight: "1.4" }}>
-              Includes event attendance check-in and all 6 meal/refreshment slots. The whole squad uses this single pass:
+              Includes event attendance check-in, 2 times main food meals, and 5 times refreshment & snacks. The whole squad uses this single pass:
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
               <Button

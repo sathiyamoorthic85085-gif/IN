@@ -329,12 +329,13 @@ function processRegistration(payload) {
           reg.phone || "",
           reg.email || "",
           "Unclaimed", // Attendance
-          "Unclaimed", // 24th Morning Snacks
-          "Unclaimed", // 24th Night Dinner
-          "Unclaimed", // 24th Night Snacks
-          "Unclaimed", // 25th Morning Breakfast
-          "Unclaimed", // 25th Morning Snacks
-          "Unclaimed"  // 25th Afternoon Snacks
+          "Unclaimed", // 24th Morning Snacks (Snacks 1/5)
+          "Unclaimed", // 24th Evening Snacks (Snacks 2/5)
+          "Unclaimed", // 24th Night Dinner (Food 1/2)
+          "Unclaimed", // 24th Night Snacks (Snacks 3/5)
+          "Unclaimed", // 25th Morning Breakfast (Food 2/2)
+          "Unclaimed", // 25th Morning Snacks (Snacks 4/5)
+          "Unclaimed"  // 25th Afternoon Snacks (Snacks 5/5)
         ]);
       });
     } catch (foodLogErr) {
@@ -382,10 +383,9 @@ function sendConfirmationGmail(reg, memberNames, amountPaid) {
     '<img src="' + qrImage + '" alt="Team QR" width="160" height="160" style="display: inline-block; border-radius: 6px; background: #ffffff; padding: 8px; margin-bottom: 12px;" />' +
     '<p style="margin: 0 0 6px; color: #ffdc86; font-size: 11px; font-weight: bold;">SHOW THIS SINGLE QR AT REGISTRATION & CATERING</p>' +
     '<div style="font-size: 12px; color: #d0e2ff; line-height: 1.6; max-width: 250px; margin: 0 auto; text-align: left;">' +
-    '✔️ <strong>Check-in & Attendance</strong><br/>' +
-    '☕ <strong>Morning & Eve Snacks</strong><br/>' +
-    '🍽️ <strong>Hackathon Dinner</strong><br/>' +
-    '🌅 <strong>Day 2 Breakfast</strong>' +
+    '✔️ <strong>Event Attendance & Check-in</strong><br/>' +
+    '🍱 <strong>2 Times Main Food Meals</strong><br/>' +
+    '☕ <strong>5 Times Snacks & Refreshments</strong>' +
     '</div>' +
     '</div>' +
     '</div>';
@@ -480,7 +480,7 @@ function getOrCreateFoodTokensSheet(spreadsheet) {
   var FOOD_HEADERS = [
     "Timestamp", "Token ID", "Reference Code", "Member Name", "Role",
     "Team Name", "College", "Phone", "Email",
-    "Attendance", "24th Mrng Snacks", "24th Night Dinner", "24th Night Snacks",
+    "Attendance", "24th Mrng Snacks", "24th Eve Snacks", "24th Night Dinner", "24th Night Snacks",
     "25th Mrng Bfast", "25th Mrng Snacks", "25th Aft Snacks"
   ];
 
@@ -646,11 +646,12 @@ function handleTokenLookup(token) {
           meals: {
             attendance: { claimed: isClaimedVal(row[9]), claimedAt: String(row[9] || "") },
             sep24_mrng_snacks: { claimed: isClaimedVal(row[10]), claimedAt: String(row[10] || "") },
-            sep24_night_dinner: { claimed: isClaimedVal(row[11]), claimedAt: String(row[11] || "") },
-            sep24_night_snacks: { claimed: isClaimedVal(row[12]), claimedAt: String(row[12] || "") },
-            sep25_mrng_bfast: { claimed: isClaimedVal(row[13]), claimedAt: String(row[13] || "") },
-            sep25_mrng_snacks: { claimed: isClaimedVal(row[14]), claimedAt: String(row[14] || "") },
-            sep25_aft_snacks: { claimed: isClaimedVal(row[15]), claimedAt: String(row[15] || "") }
+            sep24_eve_snacks: { claimed: isClaimedVal(row[11]), claimedAt: String(row[11] || "") },
+            sep24_night_dinner: { claimed: isClaimedVal(row[12]), claimedAt: String(row[12] || "") },
+            sep24_night_snacks: { claimed: isClaimedVal(row[13]), claimedAt: String(row[13] || "") },
+            sep25_mrng_bfast: { claimed: isClaimedVal(row[14]), claimedAt: String(row[14] || "") },
+            sep25_mrng_snacks: { claimed: isClaimedVal(row[15]), claimedAt: String(row[15] || "") },
+            sep25_aft_snacks: { claimed: isClaimedVal(row[16]), claimedAt: String(row[16] || "") }
           }
         });
       }
@@ -701,11 +702,12 @@ function handleMealRedeem(token, mealSlotId, claimed, organizerEmail) {
     var colMap = {
       attendance: 10,
       sep24_mrng_snacks: 11,
-      sep24_night_dinner: 12,
-      sep24_night_snacks: 13,
-      sep25_mrng_bfast: 14,
-      sep25_mrng_snacks: 15,
-      sep25_aft_snacks: 16
+      sep24_eve_snacks: 12,
+      sep24_night_dinner: 13,
+      sep24_night_snacks: 14,
+      sep25_mrng_bfast: 15,
+      sep25_mrng_snacks: 16,
+      sep25_aft_snacks: 17
     };
 
     var colIdx = colMap[mealSlotId] || 10; // default attendance
@@ -758,6 +760,7 @@ function handleHeadCount() {
     var mealStats = {
       attendance: { claimed: 0, pending: 0 },
       sep24_mrng_snacks: { claimed: 0, pending: 0 },
+      sep24_eve_snacks: { claimed: 0, pending: 0 },
       sep24_night_dinner: { claimed: 0, pending: 0 },
       sep24_night_snacks: { claimed: 0, pending: 0 },
       sep25_mrng_bfast: { claimed: 0, pending: 0 },
@@ -769,11 +772,12 @@ function handleHeadCount() {
       var r = data[i];
       if (isClaimedVal(r[9])) mealStats.attendance.claimed++; else mealStats.attendance.pending++;
       if (isClaimedVal(r[10])) mealStats.sep24_mrng_snacks.claimed++; else mealStats.sep24_mrng_snacks.pending++;
-      if (isClaimedVal(r[11])) mealStats.sep24_night_dinner.claimed++; else mealStats.sep24_night_dinner.pending++;
-      if (isClaimedVal(r[12])) mealStats.sep24_night_snacks.claimed++; else mealStats.sep24_night_snacks.pending++;
-      if (isClaimedVal(r[13])) mealStats.sep25_mrng_bfast.claimed++; else mealStats.sep25_mrng_bfast.pending++;
-      if (isClaimedVal(r[14])) mealStats.sep25_mrng_snacks.claimed++; else mealStats.sep25_mrng_snacks.pending++;
-      if (isClaimedVal(r[15])) mealStats.sep25_aft_snacks.claimed++; else mealStats.sep25_aft_snacks.pending++;
+      if (isClaimedVal(r[11])) mealStats.sep24_eve_snacks.claimed++; else mealStats.sep24_eve_snacks.pending++;
+      if (isClaimedVal(r[12])) mealStats.sep24_night_dinner.claimed++; else mealStats.sep24_night_dinner.pending++;
+      if (isClaimedVal(r[13])) mealStats.sep24_night_snacks.claimed++; else mealStats.sep24_night_snacks.pending++;
+      if (isClaimedVal(r[14])) mealStats.sep25_mrng_bfast.claimed++; else mealStats.sep25_mrng_bfast.pending++;
+      if (isClaimedVal(r[15])) mealStats.sep25_mrng_snacks.claimed++; else mealStats.sep25_mrng_snacks.pending++;
+      if (isClaimedVal(r[16])) mealStats.sep25_aft_snacks.claimed++; else mealStats.sep25_aft_snacks.pending++;
     }
 
     return ContentService.createTextOutput(JSON.stringify({
@@ -858,15 +862,25 @@ function handleAiHelpQuery(question) {
   if (q.indexOf("fee") > -1 || q.indexOf("cost") > -1 || q.indexOf("price") > -1 || q.indexOf("amount") > -1 || q.indexOf("500") > -1 || q.indexOf("register") > -1 || q.indexOf("squad") > -1) {
     return ContentService.createTextOutput(JSON.stringify({
       success: true,
-      answer: "🎟️ **InnoHack-26 Registration Fee (₹500 / Head):**\n\n• **1 Participant (Solo Leader):** ₹500\n• **2 Participants (Leader + 1 Member):** ₹1,000\n• **3 Participants (Leader + 2 Members):** ₹1,500\n• **4 Participants (Leader + 3 Members):** ₹2,000\n• **5 Participants (Leader + 4 Members):** ₹2,500\n• **6 Participants (Leader + 5 Members):** ₹3,000\n\nIncludes 24-hour sprint access, certificate, and all 6 meals & refreshments."
+      answer: "🎟️ **InnoHack-26 Registration Fee (₹500 / Head):**\n\n• **1 Participant (Solo Leader):** ₹500\n• **2 Participants (Leader + 1 Member):** ₹1,000\n• **3 Participants (Leader + 2 Members):** ₹1,500\n• **4 Participants (Leader + 3 Members):** ₹2,000\n• **5 Participants (Leader + 4 Members):** ₹2,500\n• **6 Participants (Leader + 5 Members):** ₹3,000\n\nIncludes 24-hour sprint access, certificate, 2 times main food meals, and 5 times snacks & refreshments."
     })).setMimeType(ContentService.MimeType.JSON);
   }
 
   // 5. Food & refreshments query
-  if (q.indexOf("food") > -1 || q.indexOf("meal") > -1 || q.indexOf("dinner") > -1 || q.indexOf("breakfast") > -1 || q.indexOf("snacks") > -1 || q.indexOf("eat") > -1 || q.indexOf("cater") > -1) {
+  if (q.indexOf("food") > -1 || q.indexOf("meal") > -1 || q.indexOf("dinner") > -1 || q.indexOf("breakfast") > -1 || q.indexOf("snacks") > -1 || q.indexOf("eat") > -1 || q.indexOf("cater") > -1 || q.indexOf("2 food") > -1 || q.indexOf("5 snacks") > -1) {
     return ContentService.createTextOutput(JSON.stringify({
       success: true,
-      answer: "🍽️ **Included Meal & Refreshment Schedule (All 6 Included):**\n\n1. **24th Sep 10:30 AM:** Morning Welcome Refreshments & Tea\n2. **24th Sep 08:30 PM:** Grand Hackathon Buffet Dinner Feast\n3. **25th Sep 01:00 AM:** Midnight Energy Snacks & Beverages\n4. **25th Sep 07:30 AM:** Day 2 South Indian Breakfast & Coffee\n5. **25th Sep 11:30 AM:** Day 2 Pre-Evaluation Refreshments\n6. **25th Sep 03:30 PM:** Valedictory High Tea & Closing Treats\n\nShow your team digital QR pass at the catering desk for instant food check-off."
+      answer: "🍽️ **Included Meals & Snacks Schedule (2 Times Food + 5 Times Snacks = Total 7 Sessions Included):**\n\n" +
+              "🍱 **2 TIMES MAIN FOOD MEALS:**\n" +
+              "1. **24th Sep 08:30 PM:** Grand Hackathon Dinner Feast Buffet (Food 1/2)\n" +
+              "2. **25th Sep 07:30 AM:** Day 2 South Indian Breakfast & Coffee (Food 2/2)\n\n" +
+              "☕ **5 TIMES SNACKS & REFRESHMENTS:**\n" +
+              "1. **24th Sep 10:30 AM:** Day 1 Morning Welcome Tea & Snacks (Snacks 1/5)\n" +
+              "2. **24th Sep 05:00 PM:** Day 1 Evening High Tea & Snacks (Snacks 2/5)\n" +
+              "3. **25th Sep 01:00 AM:** Midnight Energy Boost Snacks & Hot Drinks (Snacks 3/5)\n" +
+              "4. **25th Sep 11:30 AM:** Day 2 Pre-Evaluation Refreshments & Tea (Snacks 4/5)\n" +
+              "5. **25th Sep 03:30 PM:** Valedictory High Tea & Celebration Treats (Snacks 5/5)\n\n" +
+              "Show your team digital QR pass at the catering desk for instant food check-off."
     })).setMimeType(ContentService.MimeType.JSON);
   }
 

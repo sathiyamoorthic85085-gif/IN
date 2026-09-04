@@ -1,6 +1,7 @@
 export type MealSlotId =
   | "attendance"
   | "sep24_mrng_snacks"
+  | "sep24_eve_snacks"
   | "sep24_night_dinner"
   | "sep24_night_snacks"
   | "sep25_mrng_bfast"
@@ -26,14 +27,21 @@ export const MEAL_SCHEDULE: MealSlotDefinition[] = [
   {
     id: "sep24_mrng_snacks",
     name: "24th Sep Morning Snacks",
-    slot: "Welcome Refreshments & Tea",
+    slot: "Welcome Refreshments & Tea (Snacks 1/5)",
     type: "snacks",
-    timeWindow: "09:00 AM – 11:00 AM (24th Sep)",
+    timeWindow: "10:30 AM – 11:30 AM (24th Sep)",
+  },
+  {
+    id: "sep24_eve_snacks",
+    name: "24th Sep Evening Snacks",
+    slot: "Evening High Tea & Snacks (Snacks 2/5)",
+    type: "snacks",
+    timeWindow: "04:30 PM – 05:30 PM (24th Sep)",
   },
   {
     id: "sep24_night_dinner",
     name: "24th Sep Night Dinner",
-    slot: "Main Hackathon Feast (Dinner)",
+    slot: "Main Hackathon Feast Buffet (Food 1/2)",
     type: "food",
     timeWindow: "08:00 PM – 10:30 PM (24th Sep)",
   },

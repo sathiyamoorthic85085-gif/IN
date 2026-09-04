@@ -75,11 +75,12 @@ interface HeadCountResponse {
 }
 
 const MEALS = [
-  { id: "sep24_mrng_snacks", label: "24th Sep Morning Snacks", icon: "☕", type: "snacks", time: "09:00 AM" },
+  { id: "sep24_mrng_snacks", label: "24th Sep Morning Snacks", icon: "☕", type: "snacks", time: "10:30 AM" },
+  { id: "sep24_eve_snacks", label: "24th Sep Evening Snacks", icon: "🍵", type: "snacks", time: "05:00 PM" },
   { id: "sep24_night_dinner", label: "24th Sep Night Dinner", icon: "🍽️", type: "food", time: "08:30 PM" },
-  { id: "sep24_night_snacks", label: "24th Sep Night Snacks", icon: "🌙", type: "snacks", time: "01:00 AM" },
+  { id: "sep24_night_snacks", label: "25th Sep Midnight Snacks", icon: "🌙", type: "snacks", time: "01:00 AM" },
   { id: "sep25_mrng_bfast", label: "25th Sep Morning Breakfast", icon: "🌅", type: "food", time: "07:30 AM" },
-  { id: "sep25_mrng_snacks", label: "25th Sep Morning Snacks", icon: "☕", type: "snacks", time: "11:00 AM" },
+  { id: "sep25_mrng_snacks", label: "25th Sep Morning Snacks", icon: "☕", type: "snacks", time: "11:30 AM" },
   { id: "sep25_aft_snacks", label: "25th Sep Afternoon Snacks", icon: "🥪", type: "snacks", time: "03:30 PM" },
 ];
 
