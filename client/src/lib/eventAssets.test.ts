@@ -3,12 +3,13 @@ import { eventAssets, offlineEventMediaAssets } from "./eventAssets";
 
 describe("event media catalogue", () => {
   it("lists unique local media for offline caching", () => {
-    expect(offlineEventMediaAssets).toHaveLength(22);
+    expect(offlineEventMediaAssets).toHaveLength(23);
     expect(new Set(offlineEventMediaAssets).size).toBe(offlineEventMediaAssets.length);
     expect(eventAssets.payment.qr).toBe("/media/innohack26-college-payment-qr-current_92d85bc1.png");
     expect(offlineEventMediaAssets).toContain(eventAssets.payment.qr);
     expect(offlineEventMediaAssets).toContain(eventAssets.partners.nexara);
     expect(offlineEventMediaAssets).toContain(eventAssets.team.roboticsLead);
+    expect(offlineEventMediaAssets).toContain(eventAssets.team.harishGopal);
     expect(offlineEventMediaAssets).toContain(eventAssets.leadership.mechHod);
     expect(offlineEventMediaAssets).toContain(eventAssets.leadership.roboticsHod);
     expect(offlineEventMediaAssets).toContain(eventAssets.leadership.roboticsFacultyCoordinator);

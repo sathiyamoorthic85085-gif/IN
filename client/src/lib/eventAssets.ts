@@ -22,6 +22,7 @@ export const eventAssets = {
     abhiRuban: "/media/abhi-ruban-eie-event-lead_c19bb0b4.jpeg",
     roboticsLead: "/media/jayamanikandan-p-robotics-student-coordinator.jpg",
     jayamanikandan: "/media/jayamanikandan-p-robotics-student-coordinator.jpg",
+    harishGopal: "/media/harish-gopal-robotics-student-coordinator.jpg",
   },
   leadership: {
     mechHod: "/media/innohack26-mech-hod.jpg",
@@ -58,6 +59,7 @@ export const offlineEventMediaAssets = [
   eventAssets.team.sathiyamoorthi,
   eventAssets.team.abhiRuban,
   eventAssets.team.roboticsLead,
+  eventAssets.team.harishGopal,
   eventAssets.leadership.mechHod,
   eventAssets.leadership.roboticsHod,
   eventAssets.leadership.roboticsFacultyCoordinator,
