@@ -58,7 +58,29 @@ export function App() {
       const res = await fetch(`${GAS_WEBHOOK_URL}?action=headcount`);
       if (res.ok) {
         const data = await res.json();
-        setMetrics(data);
+        const total = data.totalRegisteredParticipants ?? data.totalRegisteredAttendees ?? data.totalPassesIssued ?? 0;
+        let statsArray = Array.isArray(data.mealStats) ? data.mealStats : [];
+        if (!Array.isArray(data.mealStats) && data.mealStats && typeof data.mealStats === "object") {
+          statsArray = MEAL_SCHEDULE.map((m) => {
+            const raw = data.mealStats[m.id] || {};
+            const served = raw.servedCount ?? raw.claimed ?? (typeof raw === "number" ? raw : 0);
+            return {
+              id: m.id,
+              name: m.name,
+              slot: m.slot,
+              type: m.type,
+              timeWindow: m.timeWindow,
+              servedCount: served,
+              totalEligible: total,
+            };
+          });
+        }
+        setMetrics({
+          totalRegisteredParticipants: total,
+          totalSquads: data.totalSquads ?? Math.ceil(total / 4),
+          mealStats: statsArray,
+          lastUpdated: new Date().toLocaleTimeString(),
+        });
       }
     } catch (e) {}
   };

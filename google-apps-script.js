@@ -634,6 +634,16 @@ function handleTokenLookup(token) {
           rowToken.replace(/-/g, "").toLowerCase() === cleanToken.replace(/-/g, "").toLowerCase() ||
           rowRef.replace(/-/g, "").toLowerCase() === cleanToken.replace(/-/g, "").toLowerCase()) {
         
+        var memberRedemptions = {};
+        if (isClaimedVal(row[9])) memberRedemptions.attendance = { redeemedAt: String(row[9]), redeemedBy: "Catering Desk" };
+        if (isClaimedVal(row[10])) memberRedemptions.sep24_mrng_snacks = { redeemedAt: String(row[10]), redeemedBy: "Catering Desk" };
+        if (isClaimedVal(row[11])) memberRedemptions.sep24_eve_snacks = { redeemedAt: String(row[11]), redeemedBy: "Catering Desk" };
+        if (isClaimedVal(row[12])) memberRedemptions.sep24_night_dinner = { redeemedAt: String(row[12]), redeemedBy: "Catering Desk" };
+        if (isClaimedVal(row[13])) memberRedemptions.sep24_night_snacks = { redeemedAt: String(row[13]), redeemedBy: "Catering Desk" };
+        if (isClaimedVal(row[14])) memberRedemptions.sep25_mrng_bfast = { redeemedAt: String(row[14]), redeemedBy: "Catering Desk" };
+        if (isClaimedVal(row[15])) memberRedemptions.sep25_mrng_snacks = { redeemedAt: String(row[15]), redeemedBy: "Catering Desk" };
+        if (isClaimedVal(row[16])) memberRedemptions.sep25_aft_snacks = { redeemedAt: String(row[16]), redeemedBy: "Catering Desk" };
+
         members.push({
           tokenId: rowToken,
           referenceCode: rowRef,
@@ -643,6 +653,7 @@ function handleTokenLookup(token) {
           college: String(row[6] || ""),
           phone: String(row[7] || ""),
           email: String(row[8] || ""),
+          redemptions: memberRedemptions,
           meals: {
             attendance: { claimed: isClaimedVal(row[9]), claimedAt: String(row[9] || "") },
             sep24_mrng_snacks: { claimed: isClaimedVal(row[10]), claimedAt: String(row[10] || "") },
@@ -757,7 +768,7 @@ function handleHeadCount() {
     var data = sheet.getDataRange().getValues();
 
     var totalIssued = Math.max(0, data.length - 1);
-    var mealStats = {
+    var mealStatsMap = {
       attendance: { claimed: 0, pending: 0 },
       sep24_mrng_snacks: { claimed: 0, pending: 0 },
       sep24_eve_snacks: { claimed: 0, pending: 0 },
@@ -770,20 +781,54 @@ function handleHeadCount() {
 
     for (var i = 1; i < data.length; i++) {
       var r = data[i];
-      if (isClaimedVal(r[9])) mealStats.attendance.claimed++; else mealStats.attendance.pending++;
-      if (isClaimedVal(r[10])) mealStats.sep24_mrng_snacks.claimed++; else mealStats.sep24_mrng_snacks.pending++;
-      if (isClaimedVal(r[11])) mealStats.sep24_eve_snacks.claimed++; else mealStats.sep24_eve_snacks.pending++;
-      if (isClaimedVal(r[12])) mealStats.sep24_night_dinner.claimed++; else mealStats.sep24_night_dinner.pending++;
-      if (isClaimedVal(r[13])) mealStats.sep24_night_snacks.claimed++; else mealStats.sep24_night_snacks.pending++;
-      if (isClaimedVal(r[14])) mealStats.sep25_mrng_bfast.claimed++; else mealStats.sep25_mrng_bfast.pending++;
-      if (isClaimedVal(r[15])) mealStats.sep25_mrng_snacks.claimed++; else mealStats.sep25_mrng_snacks.pending++;
-      if (isClaimedVal(r[16])) mealStats.sep25_aft_snacks.claimed++; else mealStats.sep25_aft_snacks.pending++;
+      if (isClaimedVal(r[9])) mealStatsMap.attendance.claimed++; else mealStatsMap.attendance.pending++;
+      if (isClaimedVal(r[10])) mealStatsMap.sep24_mrng_snacks.claimed++; else mealStatsMap.sep24_mrng_snacks.pending++;
+      if (isClaimedVal(r[11])) mealStatsMap.sep24_eve_snacks.claimed++; else mealStatsMap.sep24_eve_snacks.pending++;
+      if (isClaimedVal(r[12])) mealStatsMap.sep24_night_dinner.claimed++; else mealStatsMap.sep24_night_dinner.pending++;
+      if (isClaimedVal(r[13])) mealStatsMap.sep24_night_snacks.claimed++; else mealStatsMap.sep24_night_snacks.pending++;
+      if (isClaimedVal(r[14])) mealStatsMap.sep25_mrng_bfast.claimed++; else mealStatsMap.sep25_mrng_bfast.pending++;
+      if (isClaimedVal(r[15])) mealStatsMap.sep25_mrng_snacks.claimed++; else mealStatsMap.sep25_mrng_snacks.pending++;
+      if (isClaimedVal(r[16])) mealStatsMap.sep25_aft_snacks.claimed++; else mealStatsMap.sep25_aft_snacks.pending++;
     }
+
+    var MEAL_DEFS = [
+      { id: "attendance", label: "General Attendance & Presence", icon: "🎟️", type: "food", time: "Check-in" },
+      { id: "sep24_mrng_snacks", label: "24th Sep Morning Snacks", icon: "☕", type: "snacks", time: "10:30 AM" },
+      { id: "sep24_eve_snacks", label: "24th Sep Evening Snacks", icon: "🍵", type: "snacks", time: "05:00 PM" },
+      { id: "sep24_night_dinner", label: "24th Sep Night Dinner", icon: "🍽️", type: "food", time: "08:30 PM" },
+      { id: "sep24_night_snacks", label: "25th Sep Midnight Snacks", icon: "🌙", type: "snacks", time: "01:00 AM" },
+      { id: "sep25_mrng_bfast", label: "25th Sep Morning Breakfast", icon: "🌅", type: "food", time: "07:30 AM" },
+      { id: "sep25_mrng_snacks", label: "25th Sep Morning Snacks", icon: "☕", type: "snacks", time: "11:30 AM" },
+      { id: "sep25_aft_snacks", label: "25th Sep Afternoon Snacks", icon: "🥪", type: "snacks", time: "03:30 PM" }
+    ];
+
+    var mealStatsArray = MEAL_DEFS.map(function(def) {
+      var s = mealStatsMap[def.id] || { claimed: 0, pending: 0 };
+      var percent = totalIssued > 0 ? Math.round((s.claimed / totalIssued) * 100) : 0;
+      return {
+        id: def.id,
+        label: def.label,
+        name: def.label,
+        slot: def.label,
+        icon: def.icon,
+        type: def.type,
+        time: def.time,
+        timeWindow: def.time,
+        servedCount: s.claimed,
+        totalEligible: totalIssued,
+        remainingCount: s.pending,
+        percentServed: percent
+      };
+    });
 
     return ContentService.createTextOutput(JSON.stringify({
       success: true,
+      totalRegisteredAttendees: totalIssued,
+      totalRegisteredParticipants: totalIssued,
       totalPassesIssued: totalIssued,
-      mealStats: mealStats,
+      totalSquads: Math.ceil(totalIssued / 4),
+      mealStats: mealStatsArray,
+      mealStatsMap: mealStatsMap,
       timestamp: new Date().toISOString()
     })).setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
@@ -838,23 +883,23 @@ function handleAiHelpQuery(question) {
   if (q.indexOf("robot") > -1 || q.indexOf("drone") > -1 || q.indexOf("jayamanikandan") > -1 || q.indexOf("harish") > -1 || q.indexOf("ros") > -1 || q.indexOf("sensor") > -1) {
     return ContentService.createTextOutput(JSON.stringify({
       success: true,
-      answer: "🤖 **Robotics & Automation Coordinators:**\n\n• **Jayamanikandan P** (Student Coordinator, 3rd Year Robotics): 📞 **+91 99433 71076** | ✉️ jayamanijayamani43@gmail.com\n• **Harish Gopal** (Student Coordinator, 3rd Year Robotics): 📞 **+91 8300191535** | ✉️ abdharishgopal@gmail.com\n\nContact them for Robotics track rules, drone hardware, sensor interfacing, and kit approvals."
+      answer: "🤖 **Robotics & Automation Coordinators:**\n\n• **Faculty Coordinator**: 📞 **+91 90258 54774**\n• **Jayamanikandan P** (Student Coordinator, 3rd Year Robotics): 📞 **+91 99433 71076** | ✉️ jayamanijayamani43@gmail.com\n• **Harish Gopal** (Student Coordinator, 3rd Year Robotics): 📞 **+91 8300191535** | ✉️ abdharishgopal@gmail.com\n\nContact them for Robotics track rules, drone hardware, sensor interfacing, and kit approvals."
     })).setMimeType(ContentService.MimeType.JSON);
   }
 
   // 2. Mechanical coordinators query
-  if (q.indexOf("mech") > -1 || q.indexOf("samuel") > -1 || q.indexOf("naveen") > -1 || q.indexOf("cad") > -1 || q.indexOf("fabricat") > -1 || q.indexOf("3d") > -1 || q.indexOf("workshop") > -1) {
+  if (q.indexOf("mech") > -1 || q.indexOf("vijay") > -1 || q.indexOf("anand") > -1 || q.indexOf("samuel") > -1 || q.indexOf("naveen") > -1 || q.indexOf("cad") > -1 || q.indexOf("fabricat") > -1 || q.indexOf("3d") > -1 || q.indexOf("workshop") > -1) {
     return ContentService.createTextOutput(JSON.stringify({
       success: true,
-      answer: "⚙️ **Mechanical Engineering Coordinators:**\n\n• **Samuel A** (Student Coordinator, 3rd Year Mech): 📞 **+91 9342683393** | ✉️ samandrew8464@gmail.com\n• **Naveen V** (Student Coordinator, 3rd Year Mech): ✉️ naveenvenu2007@gmail.com\n\nContact Samuel A for CAD/CAM prototyping, workshop equipment, 3D printing components, and accommodation."
+      answer: "⚙️ **Mechanical Engineering Coordinators:**\n\n• **Dr. M. Vijay Anand** (Faculty Coordinator, Mech): 📞 **+91 99428 34224** | ✉️ vijayanandesec@gmail.com\n• **Samuel A** (Student Coordinator, 3rd Year Mech): 📞 **+91 9342683393** | ✉️ samandrew8464@gmail.com\n• **Naveen V** (Student Coordinator, 3rd Year Mech): ✉️ naveenvenu2007@gmail.com\n\nContact Dr. M. Vijay Anand & Samuel A for CAD/CAM prototyping, workshop equipment, 3D printing components, and accommodation."
     })).setMimeType(ContentService.MimeType.JSON);
   }
 
   // 3. Tech lead, EIE, Faculty, OD, Website query
-  if (q.indexOf("tech") > -1 || q.indexOf("sathiyamoorthi") > -1 || q.indexOf("vinodhini") > -1 || q.indexOf("eie") > -1 || q.indexOf("od") > -1 || q.indexOf("letter") > -1 || q.indexOf("approval") > -1 || q.indexOf("website") > -1 || q.indexOf("pass") > -1 || q.indexOf("qr") > -1) {
+  if (q.indexOf("tech") > -1 || q.indexOf("sathiyamoorthi") > -1 || q.indexOf("karthick") > -1 || q.indexOf("vinodhini") > -1 || q.indexOf("eie") > -1 || q.indexOf("od") > -1 || q.indexOf("letter") > -1 || q.indexOf("approval") > -1 || q.indexOf("website") > -1 || q.indexOf("pass") > -1 || q.indexOf("qr") > -1) {
     return ContentService.createTextOutput(JSON.stringify({
       success: true,
-      answer: "💻 **Tech & Event Coordinators:**\n\n• **Sathiyamoorthi C.** (Tech Lead & EIE Coordinator): 📞 **+91 7708914279** (Website issues, QR food passes, registrations, Software build track)\n• **Mrs. Vinodhini C.** (Faculty Coordinator, A/P EIE): 📞 **+91 6382249016** (Faculty approvals, official college OD letters)\n• **Abhi Ruban** (Event Lead)\n\nEmail: innohack26@gmail.com"
+      answer: "💻 **Tech & Event Coordinators:**\n\n• **Mr. M. Karthick Kumar** (HOD, Electronics & Instrumentation)\n• **Sathiyamoorthi C.** (Tech Lead & EIE Coordinator): 📞 **+91 7708914279** (Website issues, QR food passes, registrations, Software build track)\n• **Mrs. Vinodhini C.** (Faculty Coordinator, A/P EIE): 📞 **+91 6382249016** (Faculty approvals, official college OD letters)\n• **Abhi Ruban** (Event Lead)\n\nEmail: innohack26@gmail.com"
     })).setMimeType(ContentService.MimeType.JSON);
   }
 
@@ -895,7 +940,7 @@ function handleAiHelpQuery(question) {
   // 7. Dates, venue & general query
   return ContentService.createTextOutput(JSON.stringify({
     success: true,
-    answer: "🚀 **InnoHack-26 Event Info:**\n\n• **Dates:** 24th & 25th September 2026 (24-Hour Continuous Hackathon)\n• **Venue:** Erode Sengunthar Engineering College, Perundurai, Erode – 638 057\n• **Prize Pool:** ₹50,000 Total Cash Prizes\n• **Coordinators to Call:**\n  - Robotics: Jayamanikandan P (+91 99433 71076) / Harish Gopal (+91 8300191535)\n  - Mechanical: Samuel A (+91 9342683393)\n  - Tech/Registrations: Sathiyamoorthi C. (+91 7708914279)\n  - Faculty Coordinator: Mrs. Vinodhini C. (+91 6382249016)\n• **WhatsApp Community:** https://chat.whatsapp.com/CFnmH4QfqFo3ijpJb76fGe?mode=gi_t"
+    answer: "🚀 **InnoHack-26 Event Info:**\n\n• **Dates:** 24th & 25th September 2026 (24-Hour Continuous Hackathon)\n• **Venue:** Erode Sengunthar Engineering College, Perundurai, Erode – 638 057\n• **Prize Pool:** ₹50,000 Total Cash Prizes\n• **Coordinators to Call:**\n  - Robotics Faculty Coordinator: +91 90258 54774\n  - Robotics Student: Jayamanikandan P (+91 99433 71076) / Harish Gopal (+91 8300191535)\n  - Mechanical Faculty Coordinator: Dr. M. Vijay Anand (+91 99428 34224)\n  - Mechanical Student: Samuel A (+91 9342683393)\n  - Tech/Registrations: Sathiyamoorthi C. (+91 7708914279)\n  - EIE Faculty Coordinator: Mrs. Vinodhini C. (+91 6382249016)\n• **WhatsApp Community:** https://chat.whatsapp.com/CFnmH4QfqFo3ijpJb76fGe?mode=gi_t"
   })).setMimeType(ContentService.MimeType.JSON);
 }
 

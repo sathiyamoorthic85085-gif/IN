@@ -75,6 +75,7 @@ interface HeadCountResponse {
 }
 
 const MEALS = [
+  { id: "attendance", label: "General Attendance & Presence", icon: "🎟️", type: "food", time: "Check-in" },
   { id: "sep24_mrng_snacks", label: "24th Sep Morning Snacks", icon: "☕", type: "snacks", time: "10:30 AM" },
   { id: "sep24_eve_snacks", label: "24th Sep Evening Snacks", icon: "🍵", type: "snacks", time: "05:00 PM" },
   { id: "sep24_night_dinner", label: "24th Sep Night Dinner", icon: "🍽️", type: "food", time: "08:30 PM" },
@@ -83,6 +84,33 @@ const MEALS = [
   { id: "sep25_mrng_snacks", label: "25th Sep Morning Snacks", icon: "☕", type: "snacks", time: "11:30 AM" },
   { id: "sep25_aft_snacks", label: "25th Sep Afternoon Snacks", icon: "🥪", type: "snacks", time: "03:30 PM" },
 ];
+
+function ensurePassFormat(pass: any): FoodPassRecord {
+  if (!pass) return pass;
+  const redemptions: Record<string, MealRedemptionInfo> = { ...(pass.redemptions || {}) };
+  const meals = pass.meals || {};
+
+  for (const [key, val] of Object.entries(meals)) {
+    if (!val) continue;
+    if (typeof val === "object" && val !== null) {
+      if ((val as any).claimed || (val as any).redeemedAt) {
+        redemptions[key] = {
+          redeemedAt: (val as any).claimedAt || (val as any).redeemedAt || new Date().toISOString(),
+          redeemedBy: (val as any).redeemedBy || (val as any).scannedBy || "Catering Desk",
+        };
+      }
+    } else if (typeof val === "string" && val.toLowerCase().includes("claim") && !val.toLowerCase().includes("unclaim")) {
+      redemptions[key] = { redeemedAt: val, redeemedBy: "Catering Desk" };
+    } else if (val === true) {
+      redemptions[key] = { redeemedAt: new Date().toISOString(), redeemedBy: "Catering Desk" };
+    }
+  }
+
+  return {
+    ...pass,
+    redemptions,
+  };
+}
 
 export default function AdminFoodScanner() {
   const [, setLocation] = useLocation();
@@ -94,7 +122,7 @@ export default function AdminFoodScanner() {
 
   // Scanner state
   const [searchInput, setSearchInput] = useState("");
-  const [activeMealId, setActiveMealId] = useState<string>("sep24_night_dinner");
+  const [activeMealId, setActiveMealId] = useState<string>("attendance");
   const [currentPass, setCurrentPass] = useState<FoodPassRecord | null>(null);
   const [currentTeam, setCurrentTeam] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -119,7 +147,34 @@ export default function AdminFoodScanner() {
       const res = await fetch("/api/food-token?action=headcount");
       if (res.ok) {
         const data = await res.json();
-        setMetrics(data);
+        const totalRegistered = data.totalRegisteredAttendees ?? data.totalRegisteredParticipants ?? data.totalPassesIssued ?? 0;
+        let mealStatsArray = Array.isArray(data.mealStats) ? data.mealStats : [];
+        if (!Array.isArray(data.mealStats) && data.mealStats && typeof data.mealStats === "object") {
+          mealStatsArray = MEALS.map((meal) => {
+            const raw = data.mealStats[meal.id] || {};
+            const served = raw.servedCount ?? raw.claimed ?? (typeof raw === "number" ? raw : 0);
+            const remaining = raw.remainingCount ?? raw.pending ?? Math.max(0, totalRegistered - served);
+            const percent = totalRegistered > 0 ? Math.round((served / totalRegistered) * 100) : 0;
+            return {
+              id: meal.id,
+              label: meal.label,
+              icon: meal.icon,
+              type: meal.type,
+              time: meal.time,
+              desc: meal.label,
+              servedCount: served,
+              totalEligible: totalRegistered,
+              remainingCount: remaining,
+              percentServed: percent,
+            };
+          });
+        }
+        setMetrics({
+          totalRegisteredAttendees: totalRegistered,
+          totalSquads: data.totalSquads ?? Math.ceil(totalRegistered / 4),
+          mealStats: mealStatsArray,
+          recentActivity: Array.isArray(data.recentActivity) ? data.recentActivity : [],
+        });
       }
     } catch {
       // ignore
@@ -179,14 +234,12 @@ export default function AdminFoodScanner() {
         throw new Error(err.error || "Pass not found.");
       }
       const data = await res.json();
-      setCurrentPass(data.pass);
-      if (data.team && data.team.length > 0) {
-        setCurrentTeam(data.team);
-      } else if (data.pass) {
-        setCurrentTeam([data.pass]);
-      }
+      const formattedPass = ensurePassFormat(data.pass);
+      const formattedTeam = (data.team && data.team.length > 0 ? data.team : [data.pass]).map(ensurePassFormat);
+      setCurrentPass(formattedPass);
+      setCurrentTeam(formattedTeam);
       setSearchInput("");
-      toast.success(`Pass loaded for ${data.pass.memberName} (${data.pass.teamName})`);
+      toast.success(`Pass loaded for ${formattedPass.memberName} (${formattedPass.teamName})`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Pass not found.");
     } finally {
@@ -218,18 +271,39 @@ export default function AdminFoodScanner() {
 
       const data = await res.json();
       if (data.pass) {
-        setCurrentPass(data.pass);
+        setCurrentPass(ensurePassFormat(data.pass));
+      } else {
+        setCurrentPass((prev) => {
+          if (!prev) return prev;
+          const updatedRedemptions = { ...(prev.redemptions || {}) };
+          if (forceAction === "undo") {
+            delete updatedRedemptions[mealId];
+          } else {
+            updatedRedemptions[mealId] = { redeemedAt: new Date().toISOString(), redeemedBy: organizerEmail };
+          }
+          return { ...prev, redemptions: updatedRedemptions };
+        });
       }
+
       if (data.headCount) {
         setMetrics(data.headCount);
+      } else {
+        fetchMetrics();
       }
 
       // Update current team member status in place
       setCurrentTeam((prev) =>
         prev.map((m) => {
           if (m.tokenId === tokenIdToUpdate) {
+            const updatedR = { ...(m.redemptions || {}) };
+            if (forceAction === "undo") {
+              delete updatedR[mealId];
+            } else {
+              updatedR[mealId] = { redeemedAt: new Date().toISOString(), redeemedBy: organizerEmail };
+            }
             return {
               ...m,
+              redemptions: updatedR,
               meals: {
                 ...(m.meals || {}),
                 [mealId]: forceAction === "undo" ? false : true,

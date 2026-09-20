@@ -52,6 +52,93 @@ async function getRequestBody(req: any): Promise<any> {
 const DEFAULT_WEBHOOK_URL =
   "https://script.google.com/macros/s/AKfycbzhhyU-nkNr0tDTjK-OUeUbRGSDejmhx9kPgzJ7ecz8Hut2lmPlAVzal-IdfxuzXqf8dA/exec";
 
+const MEAL_DEFINITIONS = [
+  { id: "attendance", label: "General Attendance", icon: "🎟️", type: "food", time: "Anytime" },
+  { id: "sep24_mrng_snacks", label: "24th Sep Morning Snacks", icon: "☕", type: "snacks", time: "10:30 AM" },
+  { id: "sep24_eve_snacks", label: "24th Sep Evening Snacks", icon: "🍵", type: "snacks", time: "05:00 PM" },
+  { id: "sep24_night_dinner", label: "24th Sep Night Dinner", icon: "🍽️", type: "food", time: "08:30 PM" },
+  { id: "sep24_night_snacks", label: "25th Sep Midnight Snacks", icon: "🌙", type: "snacks", time: "01:00 AM" },
+  { id: "sep25_mrng_bfast", label: "25th Sep Morning Breakfast", icon: "🌅", type: "food", time: "07:30 AM" },
+  { id: "sep25_mrng_snacks", label: "25th Sep Morning Snacks", icon: "☕", type: "snacks", time: "11:30 AM" },
+  { id: "sep25_aft_snacks", label: "25th Sep Afternoon Snacks", icon: "🥪", type: "snacks", time: "03:30 PM" },
+];
+
+function normalizeRedemptions(item: any): Record<string, any> {
+  if (!item) return {};
+  const redemptions: Record<string, any> = {};
+  const raw = item.redemptions || item.meals || {};
+  for (const [key, val] of Object.entries(raw)) {
+    if (!val) continue;
+    if (typeof val === "object" && val !== null) {
+      const isClaimed = "claimed" in val ? Boolean((val as any).claimed) : ("redeemedAt" in val ? Boolean((val as any).redeemedAt) : true);
+      if (isClaimed) {
+        redemptions[key] = {
+          redeemedAt: (val as any).claimedAt || (val as any).redeemedAt || new Date().toISOString(),
+          redeemedBy: (val as any).redeemedBy || (val as any).scannedBy || "Catering Desk",
+        };
+      }
+    } else if (typeof val === "string") {
+      const s = val.toLowerCase();
+      if (s.includes("claim") && !s.includes("unclaim")) {
+        redemptions[key] = { redeemedAt: val, redeemedBy: "Catering Desk" };
+      }
+    } else if (val === true) {
+      redemptions[key] = { redeemedAt: new Date().toISOString(), redeemedBy: "Catering Desk" };
+    }
+  }
+  return redemptions;
+}
+
+function normalizeHeadCountResponse(data: any) {
+  if (!data) return getLiveHeadCountMetrics();
+  const totalRegistered =
+    data.totalRegisteredAttendees ??
+    data.totalRegisteredParticipants ??
+    data.totalPassesIssued ??
+    0;
+  const totalSquads = data.totalSquads ?? Math.ceil(totalRegistered / 4);
+
+  let mealStatsArray: any[] = [];
+
+  if (Array.isArray(data.mealStats)) {
+    mealStatsArray = data.mealStats;
+  } else if (data.mealStats && typeof data.mealStats === "object") {
+    const statsMap = data.mealStats;
+    mealStatsArray = MEAL_DEFINITIONS.map((def) => {
+      const rawStat = statsMap[def.id] || {};
+      const servedCount =
+        rawStat.servedCount ?? rawStat.claimed ?? (typeof rawStat === "number" ? rawStat : 0);
+      const remainingCount =
+        rawStat.remainingCount ?? rawStat.pending ?? Math.max(0, totalRegistered - servedCount);
+      const percentServed =
+        totalRegistered > 0 ? Math.round((servedCount / totalRegistered) * 100) : 0;
+
+      return {
+        id: def.id,
+        label: def.label,
+        icon: def.icon,
+        type: def.type,
+        time: def.time,
+        servedCount,
+        totalEligible: totalRegistered,
+        remainingCount,
+        percentServed,
+      };
+    });
+  } else {
+    return getLiveHeadCountMetrics();
+  }
+
+  return {
+    success: true,
+    totalRegisteredAttendees: totalRegistered,
+    totalRegisteredParticipants: totalRegistered,
+    totalSquads,
+    mealStats: mealStatsArray,
+    recentActivity: Array.isArray(data.recentActivity) ? data.recentActivity : [],
+  };
+}
+
 export default async function handler(req: any, res: any) {
   if (req.method === "OPTIONS") {
     return sendResponse(res, 200, { ok: true });
@@ -75,7 +162,8 @@ export default async function handler(req: any, res: any) {
         const gasRes = await fetch(getUrl.toString());
         if (gasRes.ok) {
           const data = await gasRes.json();
-          return sendResponse(res, 200, data);
+          const normalized = normalizeHeadCountResponse(data);
+          return sendResponse(res, 200, normalized);
         }
       } catch (gasErr) {
         console.warn("[FoodToken API] Google Apps Script headcount notice:", gasErr);
@@ -116,31 +204,27 @@ export default async function handler(req: any, res: any) {
           const data = await gasRes.json();
           if (data.success && (data.pass || (data.team && data.team.length > 0))) {
             let pass = data.pass;
-            const team = data.team || (pass ? [pass] : []);
+            const rawTeam = data.team || (pass ? [pass] : []);
+
+            const team = rawTeam.map((m: any) => ({
+              ...m,
+              redemptions: normalizeRedemptions(m),
+              meals: m.meals || normalizeRedemptions(m),
+            }));
 
             if (!pass && team.length > 0) {
-              // Extract matching member or member at index `mParam`
               const matchingMember = team.find(
                 (m: any) =>
                   String(m.tokenId || "").toLowerCase() === lookupKey.toLowerCase() ||
                   String(m.tokenId || "").toLowerCase() === `${lookupKey}-f${mParam}`.toLowerCase()
               ) || team[mParam - 1] || team[0];
 
+              pass = matchingMember;
+            } else if (pass) {
               pass = {
-                tokenId: matchingMember.tokenId,
-                referenceCode: matchingMember.referenceCode || refParam || lookupKey.split("-F")[0],
-                memberIndex: mParam || 1,
-                memberName: matchingMember.memberName || "Squad Member",
-                role: matchingMember.role || "Squad Member",
-                teamName: matchingMember.teamName || "InnoHack Squad",
-                college: matchingMember.college || "Participating College",
-                domain: matchingMember.domain || "Open Innovation",
-                buildType: matchingMember.buildType || "software",
-                email: matchingMember.email || "",
-                phone: matchingMember.phone || "",
-                memberCount: team.length,
-                createdAt: new Date().toISOString(),
-                redemptions: matchingMember.meals || {},
+                ...pass,
+                redemptions: normalizeRedemptions(pass),
+                meals: pass.meals || normalizeRedemptions(pass),
               };
             }
 

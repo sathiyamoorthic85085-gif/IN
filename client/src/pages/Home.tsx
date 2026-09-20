@@ -61,6 +61,7 @@ const faqs = [
 const eieCommandHierarchy = {
   department: "ELECTRONICS & INSTRUMENTATION",
   hod: "Mr. M. Karthick Kumar",
+  hodImage: eventAssets.leadership.eieHod,
   faculty: { name: "Vinodhini C.", credential: "A/P EIE", phone: "6382249016", image: eventAssets.contacts.vinodhini },
   studentDeskPhone: "7708914279",
   students: [
@@ -73,7 +74,14 @@ const leadershipDepartments = [
   {
     department: "MECHANICAL ENGINEERING",
     hod: { name: "HEAD OF DEPARTMENT", detail: "MECHANICAL ENGINEERING", image: eventAssets.leadership.mechHod },
-    faculty: { name: "FACULTY COORDINATOR", detail: "MECHANICAL ENGINEERING" },
+    faculty: {
+      name: "Dr. M. Vijay Anand",
+      detail: "FACULTY COORDINATOR · MECH",
+      phone: "9942834224",
+      email: "vijayanandesec@gmail.com",
+      linkedin: "https://www.linkedin.com/in/dr-m-vijay-anand-2ba56025?utm_source=share_via&utm_content=profile&utm_medium=member_android",
+      image: eventAssets.leadership.mechFacultyCoordinator,
+    },
     student: {
       name: "MECHANICAL STUDENT COORDINATORS",
       detail: "SAMUEL A · NAVEEN V · 3RD YEAR",
@@ -104,7 +112,7 @@ const leadershipDepartments = [
   {
     department: "ROBOTICS & AUTOMATION",
     hod: { name: "HEAD OF DEPARTMENT", detail: "ROBOTICS & AUTOMATION", image: eventAssets.leadership.roboticsHod },
-    faculty: { name: "FACULTY COORDINATOR", detail: "ROBOTICS & AUTOMATION", image: eventAssets.leadership.roboticsFacultyCoordinator },
+    faculty: { name: "FACULTY COORDINATOR", detail: "ROBOTICS & AUTOMATION", phone: "9025854774", image: eventAssets.leadership.roboticsFacultyCoordinator },
     student: {
       name: "ROBOTICS STUDENT COORDINATORS",
       detail: "JAYAMANIKANDAN P · HARISH GOPAL · 3RD YEAR",
@@ -135,7 +143,7 @@ const leadershipDepartments = [
   },
   {
     department: eieCommandHierarchy.department,
-    hod: { name: eieCommandHierarchy.hod, detail: "HEAD OF DEPARTMENT" },
+    hod: { name: eieCommandHierarchy.hod, detail: "HEAD OF DEPARTMENT", image: eieCommandHierarchy.hodImage },
     faculty: { name: eieCommandHierarchy.faculty.name, detail: eieCommandHierarchy.faculty.credential, image: eieCommandHierarchy.faculty.image, phone: eieCommandHierarchy.faculty.phone },
     student: {
       name: "EIE STUDENT COORDINATORS",
@@ -310,7 +318,11 @@ function LeadershipDepartmentCard({ department }: { department: (typeof leadersh
                   </button>
                 )}
               </div>
-              <ProfileLinkPlaceholders label={`${department.department} Faculty Coordinator`} />
+              <ProfileLinkPlaceholders
+                label={`${department.department} Faculty Coordinator`}
+                email={"email" in department.faculty ? department.faculty.email : undefined}
+                linkedin={"linkedin" in department.faculty ? department.faculty.linkedin : undefined}
+              />
             </div>
             <div className="leadership-avatar-frame">
               {facultyHasImage ? (

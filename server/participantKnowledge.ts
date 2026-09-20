@@ -15,20 +15,20 @@ export const eventKnowledgeBase: EventKnowledgeChunk[] = [
   {
     id: "coordinators_robotics",
     title: "Robotics & Automation Coordinators & Contact Numbers",
-    keywords: ["robotics", "drone", "harish", "jayamanikandan", "automation", "sensor", "ros", "hardware lead", "robot"],
-    text: "For Robotics & Automation track, Drone queries, ROS, sensor interfacing, and hardware prototyping rules, contact: 1. Jayamanikandan P (Student Coordinator, 3rd Year Robotics) at +91 99433 71076 (jayamanijayamani43@gmail.com). 2. Harish Gopal (Student Coordinator, 3rd Year Robotics) at +91 8300191535 (abdharishgopal@gmail.com).",
+    keywords: ["robotics", "drone", "harish", "jayamanikandan", "automation", "sensor", "ros", "hardware lead", "robot", "faculty"],
+    text: "For Robotics & Automation track, Drone queries, ROS, sensor interfacing, and hardware prototyping rules, contact: 1. Faculty Coordinator (Robotics & Automation) at +91 90258 54774. 2. Jayamanikandan P (Student Coordinator, 3rd Year Robotics) at +91 99433 71076 (jayamanijayamani43@gmail.com). 3. Harish Gopal (Student Coordinator, 3rd Year Robotics) at +91 8300191535 (abdharishgopal@gmail.com).",
   },
   {
     id: "coordinators_mechanical",
     title: "Mechanical Engineering Coordinators & Contact Numbers",
-    keywords: ["mechanical", "mech", "samuel", "naveen", "cad", "cam", "fabrication", "workshop", "3d printing", "accommodation"],
-    text: "For Mechanical Engineering track, CAD/CAM design, fabrication tools, 3D printing components, and accommodation queries, contact: 1. Samuel A (Student Coordinator, 3rd Year Mech) at +91 9342683393 (samandrew8464@gmail.com). 2. Naveen V (Student Coordinator, 3rd Year Mech) at naveenvenu2007@gmail.com.",
+    keywords: ["mechanical", "mech", "vijay", "anand", "samuel", "naveen", "cad", "cam", "fabrication", "workshop", "3d printing", "accommodation"],
+    text: "For Mechanical Engineering track, CAD/CAM design, fabrication tools, 3D printing components, and accommodation queries, contact: 1. Dr. M. Vijay Anand (Faculty Coordinator, Mech) at +91 99428 34224 (vijayanandesec@gmail.com). 2. Samuel A (Student Coordinator, 3rd Year Mech) at +91 9342683393 (samandrew8464@gmail.com). 3. Naveen V (Student Coordinator, 3rd Year Mech) at naveenvenu2007@gmail.com.",
   },
   {
     id: "coordinators_eie_tech",
     title: "EIE, Tech Lead & Faculty Coordinator Contact Numbers",
-    keywords: ["tech lead", "sathiyamoorthi", "vinodhini", "faculty", "eie", "website", "qr pass", "portal", "od", "approval", "letter", "abhi ruban"],
-    text: "For Website issues, QR Food Passes, portal technical support, payment references, and Software Build track, contact Sathiyamoorthi C. (Tech Lead & 3rd Year EIE) at +91 7708914279. For official college OD letters, faculty approvals, and institutional sponsorship, contact Mrs. Vinodhini C. (Faculty Coordinator, A/P EIE) at +91 6382249016. Abhi Ruban serves as Event Lead.",
+    keywords: ["tech lead", "sathiyamoorthi", "karthick", "vinodhini", "faculty", "hod", "eie", "website", "qr pass", "portal", "od", "approval", "letter", "abhi ruban"],
+    text: "For Electronics & Instrumentation department queries, Mr. M. Karthick Kumar serves as Head of Department. For Website issues, QR Food Passes, portal technical support, payment references, and Software Build track, contact Sathiyamoorthi C. (Tech Lead & 3rd Year EIE) at +91 7708914279. For official college OD letters, faculty approvals, and institutional sponsorship, contact Mrs. Vinodhini C. (Faculty Coordinator, A/P EIE) at +91 6382249016. Abhi Ruban serves as Event Lead.",
   },
   {
     id: "registration",
@@ -70,7 +70,7 @@ export const eventKnowledgeBase: EventKnowledgeChunk[] = [
     id: "contact",
     title: "Whom to Contact for Specific Queries",
     keywords: ["contact", "email", "help", "coordinator", "doubt", "support", "call", "phone", "number", "whom to contact", "whatsapp"],
-    text: "• Robotics/Drones: Jayamanikandan P (+91 99433 71076) or Harish Gopal (+91 8300191535)\n• Mechanical/CAD/Accommodation: Samuel A (+91 9342683393)\n• Website/QR Pass/Registrations: Sathiyamoorthi C. (+91 7708914279)\n• Faculty Approvals & OD Letters: Mrs. Vinodhini C. (+91 6382249016)\n• 24x7 Bus Logistics: 04294-232701\n• Official Email: innohack26@gmail.com\n• WhatsApp Community: https://chat.whatsapp.com/CFnmH4QfqFo3ijpJb76fGe?mode=gi_t",
+    text: "• Robotics/Drones: Faculty Coordinator (+91 90258 54774) / Jayamanikandan P (+91 99433 71076) / Harish Gopal (+91 8300191535)\n• Mechanical/CAD/Accommodation: Dr. M. Vijay Anand (+91 99428 34224, vijayanandesec@gmail.com) / Samuel A (+91 9342683393)\n• Website/QR Pass/Registrations: Sathiyamoorthi C. (+91 7708914279)\n• Faculty Approvals & OD Letters: Mrs. Vinodhini C. (+91 6382249016)\n• EIE HOD: Mr. M. Karthick Kumar\n• 24x7 Bus Logistics: 04294-232701\n• Official Email: innohack26@gmail.com\n• WhatsApp Community: https://chat.whatsapp.com/CFnmH4QfqFo3ijpJb76fGe?mode=gi_t",
   },
 ];
 
